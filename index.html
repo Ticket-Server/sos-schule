@@ -1374,7 +1374,30 @@ self.addEventListener('message', event => {
   }
   .img-upload-area:hover { border-color: rgba(255,255,255,0.3); }
   .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .img-upload-area img { max-width: 100%; max-height: 200px; border-radius: 8px; object-fit: contain; }
+  .img-upload-area img { max-width: 100%; max-height: 55vh; border-radius: 8px; object-fit: contain; }
+  /* ab 2.10.0: vorhandene Bilder antippen = vergrößern (nicht hochladen) */
+  .img-upload-area.has-img { cursor: zoom-in; padding: 8px; border-style: solid; }
+  .img-upload-area.has-img input { pointer-events: none; }
+  .img-upload-area.has-img::after {
+    content: '🔍 Antippen zum Vergrößern'; position: absolute; right: 14px; bottom: 14px;
+    background: rgba(0,0,0,0.65); color: #fff; font-size: 13px; font-weight: 600;
+    padding: 6px 10px; border-radius: 20px; pointer-events: none;
+  }
+  img.zoomable { cursor: zoom-in; }
+  .zoom-wrap { position: relative; }
+  .zoom-wrap::after {
+    content: '🔍'; position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,0.6); color: #fff;
+    font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none;
+  }
+  .img-viewer { position: fixed; inset: 0; z-index: 9000; background: #000; display: flex; flex-direction: column; }
+  .img-viewer[hidden] { display: none; }
+  .iv-stage { flex: 1; position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .iv-stage img { position: absolute; left: 50%; top: 50%; transform-origin: center center; max-width: none; max-height: none; will-change: transform; -webkit-user-drag: none; }
+  .iv-bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #111; justify-content: center; }
+  .iv-bar button { background: #2C2C2C; color: #fff; border: none; border-radius: 10px; font-size: 18px; font-weight: 700; min-width: 52px; height: 48px; padding: 0 14px; cursor: pointer; font-family: var(--font-main); }
+  .iv-bar button:active { background: #444; }
+  .iv-bar .iv-close { background: #C0392B; }
+  .iv-hint { position: absolute; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.15); color: #fff; font-size: 13px; padding: 6px 12px; border-radius: 20px; pointer-events: none; white-space: nowrap; transition: opacity 0.6s; }
   .img-upload-area .iu-text { font-size: 13px; color: rgba(255,255,255,0.45); text-align: center; padding: 20px; }
   .img-upload-area .iu-icon { font-size: 32px; }
 
@@ -2585,7 +2608,7 @@ self.addEventListener('message', event => {
             </span>
           </div>
         </div>
-        <p class="text-center" style="font-size:11px;color:rgba(255,255,255,0.3);padding:8px 16px 24px">SOS Schule Notfallapp · Version <span id="app-version">2.9.0</span><br>Erstellt am BSZ Cham · Frei nutzbar für Schulen</p>
+        <p class="text-center" style="font-size:11px;color:rgba(255,255,255,0.3);padding:8px 16px 24px">SOS Schule Notfallapp · Version <span id="app-version">2.10.0</span><br>Erstellt am BSZ Cham · Frei nutzbar für Schulen</p>
       </div>
     </div>
   </div>
@@ -2699,6 +2722,21 @@ self.addEventListener('message', event => {
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- Bild-Vollansicht (ab 2.10.0) -->
+<div id="img-viewer" class="img-viewer" hidden role="dialog" aria-label="Bild vergrößert">
+  <div class="iv-stage" id="iv-stage">
+    <img id="iv-img" alt="">
+    <div class="iv-hint" id="iv-hint">Mit zwei Fingern zoomen · doppelt tippen</div>
+  </div>
+  <div class="iv-bar">
+    <button onclick="ivZoomBy(1/1.6)" aria-label="Verkleinern">−</button>
+    <button onclick="ivZoomBy(1.6)" aria-label="Vergrößern">+</button>
+    <button onclick="ivRotate()">⟳ Drehen</button>
+    <button id="iv-replace" onclick="ivReplace()" hidden>Bild ersetzen</button>
+    <button class="iv-close" onclick="closeImageViewer()">✕ Schließen</button>
+  </div>
+</div>
 <!-- SAVE INDICATOR -->
 <div id="save-indicator" class="save-indicator">✓ Gespeichert</div>
 
@@ -2728,7 +2766,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.9.0';
+const APP_VERSION = '2.10.0';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -2842,7 +2880,10 @@ function loadConfig() {
 function persistConfig() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-  } catch(e) { /* ignore */ }
+  } catch(e) {
+    // Meist: Speicher des Browsers voll (sehr große Bilder)
+    if (typeof showToast === 'function') showToast('⚠ Gerätespeicher voll – bitte kleinere Bilder verwenden');
+  }
 }
 
 // Meta-Infos (Zeitstempel) getrennt vom eigentlichen Konfigurationsobjekt,
@@ -2929,6 +2970,7 @@ function navigate(screenId) {
   renderScreenBlocks(screenId);
   applyKlarScreen(screenId);
   if (screenId === 'weitere') renderWeitereKlar();
+  if (['flucht','flucht-notausgaenge','flucht-rettungsweg','konzept','suizid'].includes(screenId)) restoreImages();
 
   // screen-specific init
   if (screenId === 'log') renderLog();
@@ -3762,7 +3804,7 @@ function blockHTML(key, i, b) {
     return `<div class="content-card" ${indent}>
       ${title ? `<div class="content-card-header">🖼️ ${title}</div>` : ''}
       <div class="content-card-body" style="padding:10px">
-        ${b.img ? `<img src="${b.img}" alt="${title}" style="width:100%;border-radius:8px;display:block">` : '<p class="text-muted">Bild im Admin-Bereich hochladen.</p>'}
+        ${b.img ? `<div class="zoom-wrap"><img class="zoomable" src="${b.img}" alt="${title}" style="width:100%;border-radius:8px;display:block" onclick="openImageViewer(this.src)"></div>` : '<p class="text-muted">Bild im Admin-Bereich hochladen.</p>'}
       </div>
     </div>`;
   }
@@ -4191,7 +4233,7 @@ function moveBlock(i, dir) {
 function blockImgUpload(i, input) {
   const file = input.files[0];
   if (!file) return;
-  resizeImage(file, 1400, dataUrl => {
+  resizeImage(file, 2000, dataUrl => {
     const blocks = getBlocks(blockAdminScreen);
     if (blocks[i]) blocks[i].img = dataUrl;
     renderBlocksAdmin();
@@ -4285,15 +4327,27 @@ function renderStandorte() {
    IMAGE UPLOADS
 ============================================================ */
 function triggerImgUpload(type) {
+  // Ist schon ein Bild da, wird es vergrößert angezeigt statt eine Datei abzufragen.
+  if (config['img_' + type]) { openImageViewer(config['img_' + type], type); return; }
   const input = document.querySelector(`#${type}-img-area input`);
   if (input) input.click();
+}
+
+function markImgArea(type, has) {
+  const area = document.getElementById(type + '-img-area');
+  if (area) area.classList.toggle('has-img', !!has);
 }
 
 function handleImgUpload(type, input) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  input.value = '';
+  resizeImage(file, 2000, dataUrl => applyUploadedImg(type, dataUrl));
+}
+
+function applyUploadedImg(type, dataUrl) {
+  const e = { target: { result: dataUrl } };
+  {
     const img = document.getElementById(type + '-img');
     const emptyText = document.getElementById(type + '-empty-text');
     if (img) {
@@ -4304,8 +4358,9 @@ function handleImgUpload(type, input) {
     // save to config
     config['img_' + type] = e.target.result;
     persistConfig();
-  };
-  reader.readAsDataURL(file);
+    markImgArea(type, true);
+    if (typeof updatePublishBanner === 'function') updatePublishBanner();
+  }
 }
 
 function restoreImages() {
@@ -4320,6 +4375,7 @@ function restoreImages() {
         if (emptyText) emptyText.style.display = 'none';
       }
     }
+    markImgArea(type, !!stored);
   });
 }
 
@@ -4875,6 +4931,136 @@ document.getElementById('qr-modal').addEventListener('click', function (e) {
 });
 
 /* ============================================================
+   BILD-VOLLANSICHT mit Zoom, Verschieben, Drehen (ab 2.10.0)
+============================================================ */
+const IV = { scale: 1, tx: 0, ty: 0, rot: 0, fitW: 0, fitH: 0, type: null, pointers: new Map(), pinch: null, lastTap: 0, moved: false };
+
+function openImageViewer(src, type) {
+  const v = document.getElementById('img-viewer');
+  const img = document.getElementById('iv-img');
+  if (!v || !img || !src) return;
+  IV.type = type || null;
+  IV.scale = 1; IV.tx = 0; IV.ty = 0; IV.rot = 0;
+  document.getElementById('iv-replace').hidden = !(type && adminUnlocked);
+  const hint = document.getElementById('iv-hint');
+  hint.style.opacity = '1';
+  setTimeout(() => { hint.style.opacity = '0'; }, 2500);
+  v.hidden = false;
+  img.onload = () => ivFit();
+  img.src = src;
+  if (img.complete) ivFit();
+}
+
+function closeImageViewer() {
+  const v = document.getElementById('img-viewer');
+  if (v) v.hidden = true;
+  IV.pointers.clear(); IV.pinch = null;
+}
+
+function ivFit() {
+  const stage = document.getElementById('iv-stage');
+  const img = document.getElementById('iv-img');
+  if (!stage || !img || !img.naturalWidth) return;
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const nw = img.naturalWidth, nh = img.naturalHeight;
+  const quer = IV.rot % 180 !== 0;
+  const f = quer ? Math.min(W / nh, H / nw) : Math.min(W / nw, H / nh);
+  IV.fitW = nw * f; IV.fitH = nh * f;
+  img.style.width = IV.fitW + 'px';
+  img.style.height = IV.fitH + 'px';
+  ivApply();
+}
+
+function ivClamp() {
+  if (IV.scale <= 1.001) { IV.scale = 1; IV.tx = 0; IV.ty = 0; return; }
+  const stage = document.getElementById('iv-stage');
+  const quer = IV.rot % 180 !== 0;
+  const w = (quer ? IV.fitH : IV.fitW) * IV.scale, h = (quer ? IV.fitW : IV.fitH) * IV.scale;
+  const mx = Math.max(0, (w - stage.clientWidth) / 2), my = Math.max(0, (h - stage.clientHeight) / 2);
+  IV.tx = Math.max(-mx, Math.min(mx, IV.tx));
+  IV.ty = Math.max(-my, Math.min(my, IV.ty));
+}
+
+function ivApply() {
+  ivClamp();
+  const img = document.getElementById('iv-img');
+  img.style.transform = `translate(-50%, -50%) translate(${IV.tx}px, ${IV.ty}px) scale(${IV.scale}) rotate(${IV.rot}deg)`;
+}
+
+// Zoomen um einen Punkt (Koordinaten relativ zur Bühnenmitte)
+function ivZoomAt(factor, cx, cy) {
+  const ns = Math.max(1, Math.min(8, IV.scale * factor));
+  const k = ns / IV.scale;
+  IV.tx = cx - (cx - IV.tx) * k;
+  IV.ty = cy - (cy - IV.ty) * k;
+  IV.scale = ns;
+  ivApply();
+}
+function ivZoomBy(f) { ivZoomAt(f, 0, 0); }
+function ivRotate() { IV.rot = (IV.rot + 90) % 360; IV.scale = 1; IV.tx = 0; IV.ty = 0; ivFit(); }
+
+function ivReplace() {
+  const t = IV.type;
+  closeImageViewer();
+  const input = t && document.querySelector(`#${t}-img-area input`);
+  if (input) input.click();
+}
+
+(function ivSetup() {
+  const init = () => {
+    const stage = document.getElementById('iv-stage');
+    if (!stage) return;
+    const rel = e => { const r = stage.getBoundingClientRect(); return { x: e.clientX - r.left - r.width / 2, y: e.clientY - r.top - r.height / 2 }; };
+    stage.addEventListener('pointerdown', e => {
+      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+      IV.pointers.set(e.pointerId, rel(e));
+      IV.moved = false;
+      if (IV.pointers.size === 2) {
+        const [a, b] = [...IV.pointers.values()];
+        IV.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: IV.scale, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, tx: IV.tx, ty: IV.ty };
+      }
+    });
+    stage.addEventListener('pointermove', e => {
+      if (!IV.pointers.has(e.pointerId)) return;
+      const prev = IV.pointers.get(e.pointerId), cur = rel(e);
+      IV.pointers.set(e.pointerId, cur);
+      if (Math.hypot(cur.x - prev.x, cur.y - prev.y) > 2) IV.moved = true;
+      if (IV.pointers.size === 2 && IV.pinch) {
+        const [a, b] = [...IV.pointers.values()];
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        const ns = Math.max(1, Math.min(8, IV.pinch.s * d / IV.pinch.d));
+        const k = ns / IV.pinch.s;
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        IV.scale = ns;
+        IV.tx = mx - (IV.pinch.mx - IV.pinch.tx) * k;
+        IV.ty = my - (IV.pinch.my - IV.pinch.ty) * k;
+        ivApply();
+      } else if (IV.pointers.size === 1 && IV.scale > 1) {
+        IV.tx += cur.x - prev.x; IV.ty += cur.y - prev.y;
+        ivApply();
+      }
+    });
+    const end = e => {
+      if (!IV.pointers.has(e.pointerId)) return;
+      const p = IV.pointers.get(e.pointerId);
+      IV.pointers.delete(e.pointerId);
+      if (IV.pointers.size < 2) IV.pinch = null;
+      if (e.type === 'pointerup' && !IV.moved && IV.pointers.size === 0) {
+        const now = Date.now();
+        if (now - IV.lastTap < 320) { IV.scale > 1 ? (IV.scale = 1, ivApply()) : ivZoomAt(2.5, p.x, p.y); IV.lastTap = 0; }
+        else IV.lastTap = now;
+      }
+    };
+    stage.addEventListener('pointerup', end);
+    stage.addEventListener('pointercancel', end);
+    stage.addEventListener('wheel', e => { e.preventDefault(); const p = rel(e); ivZoomAt(e.deltaY < 0 ? 1.2 : 1 / 1.2, p.x, p.y); }, { passive: false });
+    window.addEventListener('resize', () => { if (!document.getElementById('img-viewer').hidden) ivFit(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImageViewer(); });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+/* ============================================================
    DESIGN „KLAR“ (ab 2.9.0)
 ============================================================ */
 function isKlar() { return (config.design || 'klar') !== 'modern'; }
@@ -5227,6 +5413,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     restoreImages();
   } else {
     await loadRemoteConfig(); // ?config=xyz.json automatisch laden (bisheriger Weg)
+    restoreImages();
   }
   renderHomeTiles();          // Kacheln aufbauen (inkl. eigener Kacheln)
   handleHashNav();            // #feuer etc. (Manifest-Shortcuts)
