@@ -681,6 +681,113 @@ self.addEventListener('message', event => {
     transition: background var(--transition);
   }
   .tel-card:last-child { border-bottom: none; }
+</style>
+<style id="design-klar-css">
+  /* ============================================================
+     DESIGN „KLAR“ (ab 2.9.0) – hell, ruhig, große Schrift
+     Gilt für alle Bildschirme außer dem Admin-Bereich.
+  ============================================================ */
+  body.design-klar, body.design-klar #app { background: #FFFFFF; color: #1F1F1D; }
+  .design-klar .screen:not(#screen-admin) { background: #FFFFFF; color: #1F1F1D; }
+  .design-klar #screen-admin { background: var(--gray-900); color: var(--white); }
+  .design-klar #screen-home { background: #FFFFFF; }
+
+  /* Kopfbereich Startseite */
+  .design-klar .home-header { background: var(--school-primary) !important; padding: 14px 16px; border-bottom: none; }
+  .design-klar .home-logo-area { margin-bottom: 0; gap: 12px; }
+  .design-klar .home-logo { width: 44px; height: 44px; border-radius: 10px; font-size: 15px; box-shadow: none; }
+  .design-klar .home-school-name { font-size: 20px; font-weight: 800; text-shadow: none; }
+  .design-klar .home-school-sub, .design-klar .sos-banner { display: none; }
+
+  /* Startseite: nur große Buttons */
+  .design-klar .home-content { padding: 18px 16px 110px; }
+  .design-klar .panic-launcher,
+  .design-klar .quick-row,
+  .design-klar .home-content > .section-label { display: none; }
+  .design-klar .home-content > p.text-center { color: #8A8A85 !important; }
+  .design-klar .home-content > p.text-center a { color: #8A8A85 !important; }
+
+  .klar-btn {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    width: 100%; min-height: 68px; margin: 0 0 12px; padding: 14px 18px;
+    border: none; border-radius: 12px; cursor: pointer;
+    font-family: var(--font-main); font-size: 22px; font-weight: 800; letter-spacing: 0.02em;
+    text-align: center; text-decoration: none; line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .klar-btn:active { transform: scale(0.98); filter: brightness(0.92); }
+  .klar-btn.red    { background: #C0392B; color: #FFFFFF; }
+  .klar-btn.amber  { background: #F0A92B; color: #3A2403; }
+  .klar-btn.green  { background: #3B6D11; color: #FFFFFF; font-size: 19px; justify-content: flex-start; min-height: 60px; }
+  .klar-btn.gray   { background: #EEECE6; color: #3A3A37; font-size: 18px; min-height: 56px; }
+  .klar-btn .kb-icon { font-size: 22px; width: 28px; text-align: center; flex-shrink: 0; }
+  .klar-gap { height: 14px; }
+  .klar-heading { font-size: 15px; font-weight: 700; color: #6B6B66; margin: 18px 2px 10px; }
+  .klar-heading:first-child { margin-top: 0; }
+
+  /* Kopfzeile der Unterseiten */
+  .design-klar .header { min-height: 64px; }
+  .design-klar .header-title { font-size: 21px; font-weight: 800; }
+  .design-klar .header-subtitle { display: none; }
+
+  /* Sofortmaßnahmen groß und ruhig */
+  .design-klar .sofort-box { background: #FFFFFF !important; border: none !important; padding: 18px 2px 4px; margin: 0 16px 8px; }
+  .design-klar .sofort-box h3 { display: none; }
+  .design-klar .sofort-step { gap: 14px; margin-bottom: 16px; }
+  .design-klar .step-num { width: 32px; height: 32px; font-size: 16px; }
+  .design-klar .step-txt { font-size: 20px; line-height: 1.4; color: #1F1F1D; font-weight: 600; }
+
+  /* „Weitere Informationen“ eingeklappt */
+  .design-klar .klar-collapsed .scroll-content > :not(.klar-keep):not([id^="content-"]) { display: none !important; }
+  .design-klar .klar-collapsed [id^="content-"] > :not(.sofort-box) { display: none !important; }
+  .klar-actions { padding: 6px 16px 18px; }
+
+  /* Karten, Listen, Hinweise auf hellem Grund */
+  .design-klar .screen:not(#screen-admin) .content-card { background: #F6F5F1; }
+  .design-klar .screen:not(#screen-admin) .content-card-header { background: #ECEAE3; color: #3A3A37; font-size: 15px; }
+  .design-klar .screen:not(#screen-admin) .measure-list li { color: #1F1F1D; font-size: 17px; }
+  .design-klar .screen:not(#screen-admin) .measure-list li::before { background: #D9D6CC; color: #1F1F1D; }
+  .design-klar .screen:not(#screen-admin) .info-banner { background: #F6F5F1 !important; border-color: #E2DFD6 !important; color: #1F1F1D; }
+  .design-klar .screen:not(#screen-admin) .btn-secondary { background: #EEECE6; color: #1F1F1D; border-color: #DDD9CF; font-size: 16px; }
+  .design-klar .screen:not(#screen-admin) .section-label { color: #6B6B66; font-size: 13px; }
+  .design-klar .screen:not(#screen-admin) .text-muted { color: #6B6B66 !important; }
+
+  /* Telefonnummern */
+  .design-klar .tel-card { border-bottom-color: #E8E6DF; padding: 16px; }
+  .design-klar .tel-card:active { background: #F2F1EC; }
+  .design-klar .tel-name { font-size: 18px; color: #1F1F1D; }
+  .design-klar .tel-role { font-size: 14px; color: #6B6B66; }
+  .design-klar .tel-num { font-size: 18px; color: #2E7D32; font-weight: 800; }
+  .design-klar .tel-icon { background: #E6F2DF; }
+
+  /* Nebenbildschirme auf hellem Grund */
+  .design-klar .screen:not(#screen-admin) .emergency-card { background: #F6F5F1; color: #1F1F1D; }
+  .design-klar .screen:not(#screen-admin) .card-title { font-size: 16px; }
+  .design-klar .screen:not(#screen-admin) .card-sub { color: #6B6B66; font-size: 12px; }
+  .design-klar .screen:not(#screen-admin) :is([style*="color:rgba(255,255,255"],[style*="color: rgba(255,255,255"],[style*="color:var(--white)"],[style*="color: var(--white)"]):not(.sani-alarm-btn *):not(.durchsage-full *):not(.panic-btn *) { color: #4A4A46 !important; }
+  .design-klar #screen-telefon .tel-search { background: #F2F1EC; color: #1F1F1D; border: 1px solid #DDD9CF; }
+  .design-klar #screen-telefon .tel-search::placeholder { color: #8A8A85; }
+  .design-klar .screen:not(#screen-admin) .map-placeholder,
+  .design-klar .screen:not(#screen-admin) .img-upload-area { background: #F6F5F1; border-color: #DDD9CF; color: #4A4A46; }
+  .design-klar .screen:not(#screen-admin) .map-placeholder .mp-title,
+  .design-klar .screen:not(#screen-admin) .img-upload-area .iu-text { color: #6B6B66; }
+  .design-klar .screen:not(#screen-admin) .log-entry { background: #F6F5F1; color: #1F1F1D; }
+  .design-klar .screen:not(#screen-admin) .log-meta, .design-klar .screen:not(#screen-admin) .log-note { color: #4A4A46; }
+  .design-klar .screen:not(#screen-admin) .log-empty { color: #8A8A85; }
+  .design-klar .screen:not(#screen-admin) .check-item { background: #F6F5F1; }
+  .design-klar .screen:not(#screen-admin) .check-text { color: #1F1F1D; font-size: 17px; }
+  .design-klar .screen:not(#screen-admin) .check-item.done .check-text { color: #8A8A85; }
+  .design-klar .screen:not(#screen-admin) .att-add-row input { background: #F2F1EC; color: #1F1F1D; border: 1px solid #DDD9CF; }
+  .design-klar .screen:not(#screen-admin) .att-row { background: #F6F5F1; color: #1F1F1D; }
+  .design-klar .screen:not(#screen-admin) .att-sub { color: #6B6B66; }
+  .design-klar .screen:not(#screen-admin) .att-counter button { background: #E6E3DA; color: #1F1F1D; }
+  .design-klar .screen:not(#screen-admin) .sammelplatz-chip { background: #E6F2DF; color: #2E5E12; border-color: #BFD9AE; }
+
+  /* Untere Leiste */
+  .design-klar .bottom-nav { background: #FFFFFF; border-top: 1px solid #E2DFD6; }
+  .design-klar .nav-btn { color: #6B6B66; font-size: 12px; }
+  .design-klar .nav-btn.active { color: #C0392B; }
+
   .tel-card:active { background: rgba(255,255,255,0.05); }
   .tel-icon {
     width: 40px; height: 40px;
@@ -1640,6 +1747,19 @@ self.addEventListener('message', event => {
   </div>
 
   <!-- ========================================================
+    SCREEN: WEITERE (Design „Klar“)
+  ======================================================== -->
+  <div id="screen-weitere" class="screen">
+    <div class="header" style="background: var(--school-primary)">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <div class="header-title">Weitere Vorfälle</div>
+    </div>
+    <div class="scroll-content">
+      <div id="weitere-content" style="padding:18px 16px 24px"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================
     SCREEN: FEUER
   ======================================================== -->
   <div id="screen-feuer" class="screen">
@@ -2169,6 +2289,13 @@ self.addEventListener('message', event => {
       </div>
       <div class="admin-section">
         <div class="admin-field">
+          <label>DESIGN DER APP</label>
+          <select id="cfg-design" onchange="previewDesign(this.value)" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px 14px;color:var(--white);font-size:15px;font-family:var(--font-main)">
+            <option value="klar">Klar – hell, große Schrift, wenige Infos (empfohlen)</option>
+            <option value="modern">Modern – dunkel, Kacheln mit Symbolen</option>
+          </select>
+        </div>
+        <div class="admin-field">
           <label>SCHULNAME</label>
           <input type="text" id="cfg-school-name" placeholder="z.B. Berufsschule Cham">
         </div>
@@ -2458,7 +2585,7 @@ self.addEventListener('message', event => {
             </span>
           </div>
         </div>
-        <p class="text-center" style="font-size:11px;color:rgba(255,255,255,0.3);padding:8px 16px 24px">SOS Schule Notfallapp · Version <span id="app-version">2.8.0</span><br>Erstellt am BSZ Cham · Frei nutzbar für Schulen</p>
+        <p class="text-center" style="font-size:11px;color:rgba(255,255,255,0.3);padding:8px 16px 24px">SOS Schule Notfallapp · Version <span id="app-version">2.9.0</span><br>Erstellt am BSZ Cham · Frei nutzbar für Schulen</p>
       </div>
     </div>
   </div>
@@ -2601,7 +2728,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.8.0';
+const APP_VERSION = '2.9.0';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -2643,6 +2770,7 @@ const defaultConfig = {
   schoolAbbr: 'SOS',
   schoolColor: '#C0392B',
   schoolLogo: '',
+  design: 'klar',
   pin: '1234',
   telefonbuch: [
     { name:'Schulleiter/in', role:'Schulleitung', tel:'', icon:'👤' },
@@ -2799,6 +2927,8 @@ function navigate(screenId) {
   setNavVisible(false);
   renderScreenContent(screenId);
   renderScreenBlocks(screenId);
+  applyKlarScreen(screenId);
+  if (screenId === 'weitere') renderWeitereKlar();
 
   // screen-specific init
   if (screenId === 'log') renderLog();
@@ -2851,6 +2981,7 @@ function goHome() {
    BRANDING
 ============================================================ */
 function applyBranding() {
+  applyDesign();
   document.documentElement.style.setProperty('--school-primary', config.schoolColor);
   document.getElementById('homeSchoolName').textContent = config.schoolName;
   document.getElementById('homeSchoolSub').textContent = config.schoolSub;
@@ -3052,6 +3183,8 @@ function populateAdminForm() {
   if (serverAccess && ccb) ccb.style.display = 'none';
   applyServerAdminUI();
   updatePublishBanner();
+  const dSel = document.getElementById('cfg-design');
+  if (dSel) dSel.value = isKlar() ? 'klar' : 'modern';
   document.getElementById('cfg-school-name').value = config.schoolName || '';
   document.getElementById('cfg-school-sub').value = config.schoolSub || '';
   document.getElementById('cfg-school-abbr').value = config.schoolAbbr || '';
@@ -3210,6 +3343,8 @@ function addChecklistEntry() {
 }
 
 function saveConfig() {
+  const dSel = document.getElementById('cfg-design');
+  if (dSel) config.design = dSel.value;
   config.schoolName  = document.getElementById('cfg-school-name').value.trim() || 'SOS Schule';
   config.schoolSub   = document.getElementById('cfg-school-sub').value.trim();
   config.schoolAbbr  = document.getElementById('cfg-school-abbr').value.trim() || 'SOS';
@@ -3403,6 +3538,7 @@ function renderHomeTiles() {
   if (!host) return;
   ensureSections();
   ensureTileIds();
+  if (isKlar()) { renderHomeKlar(host); return; }
   host.innerHTML = config.sections.map(sec => {
     const tiles = tilesInSection(sec.id).map(tileByKey).filter(Boolean);
     if (!tiles.length) return '';
@@ -4737,6 +4873,107 @@ function downloadQR() {
 document.getElementById('qr-modal').addEventListener('click', function (e) {
   if (e.target === this) closeQRModal();
 });
+
+/* ============================================================
+   DESIGN „KLAR“ (ab 2.9.0)
+============================================================ */
+function isKlar() { return (config.design || 'klar') !== 'modern'; }
+
+const KLAR_NOTRUF = {
+  feuer: ['112', '112 anrufen'], unfall: ['112', '112 anrufen'], sani: ['112', '112 anrufen'], suizid: ['112', '112 anrufen'],
+  bombe: ['110', '110 anrufen'], amok: ['110', '110 anrufen'], waffe: ['110', '110 anrufen'],
+};
+
+function stripEmoji(t) {
+  return String(t || '').replace(/^[\p{Extended_Pictographic}\u{FE0F}\u{200D}\s]+/u, '').trim();
+}
+
+function applyDesign() {
+  const klar = isKlar();
+  document.body.classList.toggle('design-klar', klar);
+  // Symbole vor den Überschriften der Unterseiten im Klar-Design ausblenden
+  document.querySelectorAll('.screen:not(#screen-admin) .header-title').forEach(h => {
+    const tn = h.childNodes[0];
+    if (!tn || tn.nodeType !== 3) return;
+    if (h.dataset.orig === undefined) h.dataset.orig = tn.textContent;
+    tn.textContent = klar ? stripEmoji(h.dataset.orig) : h.dataset.orig;
+  });
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', klar ? (config.schoolColor || '#C0392B') : '#1A1A1A');
+}
+
+function previewDesign(v) {
+  config.design = v;
+  applyBranding();
+  renderHomeTiles();
+  updatePublishBanner();
+}
+
+function klarColor(t, first) {
+  if (t.badge && !first) return 'red';
+  if (first) return (t.color === 'red' || t.color === 'orange') ? 'red' : 'amber';
+  return 'amber';
+}
+
+function klarBtn(t, color) {
+  return `<button class="klar-btn ${color}" onclick="${t.click}">${escapeHtml(stripEmoji(t.title))}</button>`;
+}
+
+function renderHomeKlar(host) {
+  const secs = config.sections.map(sec => ({ sec, tiles: tilesInSection(sec.id).map(tileByKey).filter(Boolean) }))
+    .filter(x => x.tiles.length);
+  const first = secs[0];
+  const rest = secs.slice(1);
+  let h = '';
+  if (first) h += first.tiles.map(t => klarBtn(t, klarColor(t, true))).join('');
+  if (rest.length) h += `<button class="klar-btn amber" onclick="navigate('weitere')">Weitere Vorfälle</button>`;
+  h += '<div class="klar-gap"></div>';
+  h += `<button class="klar-btn green" onclick="navigate('telefon')"><span class="kb-icon">☎</span>Telefonnummern</button>`;
+  h += `<button class="klar-btn green" onclick="navigate('flucht')"><span class="kb-icon">➜</span>Fluchtwege</button>`;
+  h += `<button class="klar-btn green" onclick="navigate('konzept')"><span class="kb-icon">☰</span>Notfallkonzept</button>`;
+  h += `<button class="klar-btn gray" onclick="navigate('weitere');setTimeout(()=>{const e=document.getElementById('klar-hilfsmittel');if(e)e.scrollIntoView({behavior:'smooth'})},400)">Durchsagen, Checkliste und mehr</button>`;
+  host.innerHTML = h;
+}
+
+function renderWeitereKlar() {
+  const host = document.getElementById('weitere-content');
+  if (!host) return;
+  ensureSections();
+  const secs = config.sections.map(sec => ({ sec, tiles: tilesInSection(sec.id).map(tileByKey).filter(Boolean) }))
+    .filter(x => x.tiles.length).slice(1);
+  let h = secs.map(x =>
+    (secs.length > 1 ? `<div class="klar-heading">${escapeHtml(stripEmoji(x.sec.label))}</div>` : '')
+    + x.tiles.map(t => klarBtn(t, klarColor(t, false))).join('')
+  ).join('');
+  h += `<div class="klar-heading" id="klar-hilfsmittel" style="margin-top:22px">Hilfsmittel</div>`;
+  [['durchsagen','Durchsagen'],['checkliste','Checkliste Rundgang'],['standorte','Standorte (Defi, Sani …)'],
+   ['anwesenheit','Anwesenheit'],['notruf','Notruf']].forEach(([id, lbl]) => {
+    h += `<button class="klar-btn gray" onclick="navigate('${id}')">${lbl}</button>`;
+  });
+  host.innerHTML = h;
+}
+
+function applyKlarScreen(id) {
+  const scr = document.getElementById('screen-' + id);
+  if (!scr || id === 'admin') return;
+  scr.classList.remove('klar-collapsed');
+  scr.querySelectorAll('.klar-actions').forEach(e => e.remove());
+  const cont = document.getElementById('content-' + id);
+  if (!isKlar() || !cont || !cont.querySelector('.sofort-box')) return;
+  scr.classList.add('klar-collapsed');
+  const a = document.createElement('div');
+  a.className = 'klar-actions klar-keep';
+  const n = KLAR_NOTRUF[id];
+  a.innerHTML = (n ? `<a class="klar-btn red" href="tel:${n[0]}">☎ ${n[1]}</a>` : '')
+    + `<button class="klar-btn gray" onclick="klarMehr(this)">Weitere Informationen ▾</button>`;
+  cont.after(a);
+}
+
+function klarMehr(btn) {
+  const scr = btn.closest('.screen');
+  if (scr) scr.classList.remove('klar-collapsed');
+  btn.remove();
+}
 
 /* ============================================================
    SERVER-MODUS (ab 2.7.0): Daten geschützt im Cloudflare Worker
