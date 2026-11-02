@@ -681,6 +681,105 @@ self.addEventListener('message', event => {
     transition: background var(--transition);
   }
   .tel-card:last-child { border-bottom: none; }
+
+  /* ============================================================
+     ADMIN 2.12 – Übersicht wie die Startseite
+  ============================================================ */
+  #adm-home { padding: 4px 16px 8px; }
+  .adm-intro { font-size: 13px; color: rgba(255,255,255,0.65); margin: 12px 0 2px; line-height: 1.45; }
+  .adm-lbl { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: rgba(255,255,255,0.5); margin: 18px 0 8px; text-transform: uppercase; }
+  .adm-tile { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; border: 0; border-radius: 14px;
+    padding: 13px 16px; margin: 0 0 10px; font-family: var(--font-main); font-size: 18px; font-weight: 800; text-align: left; cursor: pointer; color: #fff; min-height: 62px; }
+  .adm-tile small { display: block; font-size: 12.5px; font-weight: 500; opacity: .92; margin-top: 3px; }
+  .adm-tile.red { background: #C0392B; }
+  .adm-tile.amber { background: #F0A92B; color: #3A2403; }
+  .adm-tile.green { background: #3B6D11; }
+  .adm-tile.gray { background: #EEECE6; color: #3A3A37; }
+  .adm-chip { flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.22); white-space: nowrap; }
+  .adm-tile.amber .adm-chip, .adm-tile.gray .adm-chip { background: rgba(0,0,0,0.1); }
+  .adm-chip.warn { background: #FFF4DC; color: #7A4B00; }
+  .adm-set { display: flex; justify-content: space-between; align-items: center; width: 100%; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 14px 16px; margin: 0 0 8px; color: var(--white);
+    font-family: var(--font-main); font-size: 15px; text-align: left; cursor: pointer; }
+  .adm-set span:last-child { opacity: .5; }
+  .adm-phead { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+    background: var(--gray-800); border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+  .adm-back { background: rgba(255,255,255,0.12); color: #fff; border: 0; border-radius: 20px; padding: 7px 12px; font-family: var(--font-main);
+    font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .adm-ptitle { font-weight: 800; font-size: 17px; }
+  .adm-hint { margin: 0 16px 14px; font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.45; }
+  .adm-tilemode .adm-sel,
+  .adm-tilemode .adm-part[data-part="bausteine"] .info-banner,
+  .adm-tilemode .adm-part[data-part="grundtexte"] .info-banner { display: none; }
+  #admin-content { padding-bottom: 0 !important; }
+  .adm-savebar { margin-top: 24px; position: sticky; bottom: 0; z-index: 6; background: var(--gray-900); border-top: 1px solid rgba(255,255,255,0.12); padding: 10px 16px 12px; }
+  .adm-savebar .btn-primary { margin: 0; background: #3B6D11; }
+  .adm-savestate { font-size: 12px; color: rgba(255,255,255,0.55); text-align: center; margin-top: 6px; }
+  .adm-savestate.warn { color: #FFCC80; }
+  #adm-store #btn-save-config, #adm-pbody #btn-save-config { display: none; }
+  .adm-imgrow { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .adm-imgrow img, .adm-noimg { width: 88px; height: 66px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center; font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; }
+  .adm-imgbtn { display: inline-flex !important; width: auto !important; padding: 7px 12px !important; margin: 6px 6px 0 0 !important; font-size: 13px !important; cursor: pointer; }
+  .adm-phead { display: none !important; }
+  #screen-admin .header .adm-hback { width: auto; height: 36px; border-radius: 18px; padding: 0 14px; font-size: 14px; font-weight: 700; white-space: nowrap; font-family: var(--font-main); }
+  .adm-exit { flex-shrink: 0; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.45); color: #fff; border-radius: 18px; height: 36px;
+    padding: 0 12px; font-family: var(--font-main); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  #screen-admin .header-title { min-width: 0; }
+  #screen-admin .header-subtitle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .adm-tile.blue { background: #2980B9; }
+  .adm-tile.purple { background: #8E44AD; }
+  .adm-row { display: flex; gap: 8px; align-items: stretch; margin: 0 0 10px; }
+  .adm-row .adm-tile { margin: 0; flex: 1; min-width: 0; }
+  .adm-mv { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .adm-mv button { flex: 1; width: 42px; min-height: 28px; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.08); color: #fff;
+    border-radius: 10px; font-size: 13px; cursor: pointer; }
+  .adm-mv button:disabled { opacity: .2; cursor: default; }
+  /* ---------- Helle Ansicht des Admin-Bereichs ---------- */
+  .adm-theme { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; font-size: 13px; color: rgba(255,255,255,0.6); }
+  .adm-theme button { border: 1px solid rgba(255,255,255,0.25); background: transparent; color: inherit; border-radius: 16px; padding: 5px 12px;
+    font-family: var(--font-main); font-size: 13px; cursor: pointer; }
+  .adm-theme button.on { background: var(--school-primary); border-color: var(--school-primary); color: #fff; font-weight: 700; }
+  #screen-admin.adm-light { background: #F4F2EE !important; color: #1F1F1D !important; }
+  #screen-admin.adm-light .admin-section-title { color: #6B6B66; }
+  #screen-admin.adm-light .admin-section-title span { background: #DDD9CF; }
+  #screen-admin.adm-light .admin-field, #screen-admin.adm-light .tel-admin-row, #screen-admin.adm-light .pwa-status-card { background: #FFFFFF; border: 1px solid #E2DFD6; }
+  #screen-admin.adm-light .admin-field label { color: #6B6B66; }
+  #screen-admin.adm-light .admin-field input, #screen-admin.adm-light .admin-field textarea, #screen-admin.adm-light .admin-field select { color: #1F1F1D; }
+  #screen-admin.adm-light select option { background: #FFFFFF; color: #1F1F1D; }
+  #screen-admin.adm-light .tel-admin-inputs input { background: #F6F5F1; border-color: #D9D6CC; color: #1F1F1D; }
+  #screen-admin.adm-light .btn-add { background: #FFFFFF; border-color: #BDB8AC; color: #4A4A46; }
+  #screen-admin.adm-light .btn-add:hover { background: #F6F5F1; color: #1F1F1D; }
+  #screen-admin.adm-light .btn-secondary { background: #EEECE6; color: #1F1F1D; border-color: #DDD9CF; }
+  #screen-admin.adm-light .btn-secondary:hover { background: #E3E0D8; }
+  #screen-admin.adm-light .info-banner { color: #1F1F1D; }
+  #screen-admin.adm-light .info-banner:not([style*="background"]) { background: #FFFFFF; border-color: #E2DFD6; }
+  #screen-admin.adm-light .text-muted { color: #6B6B66 !important; }
+  #screen-admin.adm-light .pin-digit { background: #FFFFFF; border-color: #CFCBC0; color: #1F1F1D; }
+  #screen-admin.adm-light .admin-locked p, #screen-admin.adm-light .logo-upload-text { color: #6B6B66; }
+  #screen-admin.adm-light .logo-upload { border-color: #CFCBC0; }
+  #screen-admin.adm-light .tag.green { background: #E3F1DA; color: #2E6B12; }
+  #screen-admin.adm-light .tag.orange { background: #FDEBD3; color: #8A4B00; }
+  #screen-admin.adm-light .tag.red { background: #FBE3E0; color: #A12C20; }
+  #screen-admin.adm-light .tag { background: #EEECE6; color: #3A3A37; }
+  #screen-admin.adm-light a { color: #1F5FAD !important; }
+  #screen-admin.adm-light [style*="color:rgba(255,255,255"], #screen-admin.adm-light [style*="color: rgba(255,255,255"] { color: #6B6B66 !important; }
+  #screen-admin.adm-light [style*="background:rgba(255,255,255"], #screen-admin.adm-light [style*="background: rgba(255,255,255"] { background: #F6F5F1 !important; }
+  #screen-admin.adm-light [style*="border:1px solid rgba(255,255,255"], #screen-admin.adm-light [style*="border-color:rgba(255,255,255"] { border-color: #D9D6CC !important; }
+  #screen-admin.adm-light [style*="color:var(--white)"] { color: #1F1F1D !important; }
+  #screen-admin.adm-light .adm-intro, #screen-admin.adm-light .adm-hint, #screen-admin.adm-light .adm-theme { color: #4A4A46; }
+  #screen-admin.adm-light .adm-theme button { border-color: #CFCBC0; }
+  #screen-admin.adm-light .adm-lbl { color: #6B6B66; }
+  #screen-admin.adm-light .adm-set { background: #FFFFFF; border-color: #DDD9CF; color: #1F1F1D; }
+  #screen-admin.adm-light .adm-tile.gray { border: 1px solid #DDD9CF; }
+  #screen-admin.adm-light .adm-savebar { background: #F4F2EE; border-top-color: #DDD9CF; }
+  #screen-admin.adm-light .adm-savestate { color: #6B6B66; }
+  #screen-admin.adm-light .adm-savestate.warn { color: #8A4B00; font-weight: 700; }
+  #screen-admin.adm-light .adm-mv button { background: #FFFFFF; border-color: #CFCBC0; color: #3A3A37; }
+  #screen-admin.adm-light .adm-noimg { background: #EEECE6; color: #8A8A85; }
+  #screen-admin.adm-light .adm-imgrow strong { color: #1F1F1D; }
+  #screen-admin .header-title { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 </style>
 <style id="design-klar-css">
   /* ============================================================
@@ -2306,6 +2405,11 @@ self.addEventListener('message', event => {
         </span>
       </div>
 
+      <!-- ===== Neuer Admin-Aufbau (2.12): Übersicht wie die Startseite ===== -->
+      <div id="adm-home"></div>
+      <div id="adm-panel" style="display:none"><div class="adm-phead"><button class="adm-back" onclick="admShowHome()">‹ Übersicht</button><div class="adm-ptitle" id="adm-ptitle"></div></div><div id="adm-pbody"></div></div>
+      <div id="adm-store" style="display:none">
+      <div class="adm-part" data-part="identity">
       <!-- School Identity -->
       <div style="padding:16px 16px 0">
         <div class="admin-section-title">🏫 Schulidentität <span></span></div>
@@ -2355,6 +2459,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="pin">
       <!-- PIN -->
       <div style="padding:0 16px">
         <div class="admin-section-title">🔐 Sicherheit <span></span></div>
@@ -2366,6 +2472,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="tel">
       <!-- Telefonnummern -->
       <div style="padding:0 16px">
         <div class="admin-section-title">📞 Telefonnummern <span></span></div>
@@ -2379,6 +2487,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="standorte">
       <!-- Standorte -->
       <div style="padding:0 16px">
         <div class="admin-section-title">📍 Wichtige Standorte <span></span></div>
@@ -2406,6 +2516,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="checkliste">
       <!-- Checkliste -->
       <div style="padding:0 16px">
         <div class="admin-section-title">✅ Checkliste <span></span></div>
@@ -2415,6 +2527,8 @@ self.addEventListener('message', event => {
         <button class="btn-add" onclick="addChecklistEntry()">＋ Punkt hinzufügen</button>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="kacheln">
       <!-- Kacheln -->
       <div style="padding:0 16px">
         <div class="admin-section-title">🧩 Kacheln (Startseite) <span></span></div>
@@ -2434,6 +2548,8 @@ self.addEventListener('message', event => {
         <button class="btn-add" onclick="addCustomTile()">＋ Eigene Kachel hinzufügen</button>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="bausteine">
       <!-- Bausteine -->
       <div style="padding:0 16px">
         <div class="admin-section-title">🧱 Inhalte der Kacheln (Bausteine) <span></span></div>
@@ -2443,7 +2559,7 @@ self.addEventListener('message', event => {
           <span class="ib-icon">💡</span>
           <span>Jedem Bereich eigene Inhalte hinzufügen: <strong>Text, Link, Telefonnummer oder Bild</strong>. Die Grundtexte der App bleiben erhalten – Ihre Bausteine erscheinen darunter als „Inhalte der Schule". Beispiele: Unterkacheln bei Fluchtwege, Link zum Notfallkonzept, eigene Karten unter Sonstiges.</span>
         </div>
-        <div class="admin-field">
+        <div class="admin-field adm-sel">
           <label>BEREICH AUSWÄHLEN</label>
           <select id="block-screen-select" onchange="blockAdminScreen=this.value;renderBlocksAdmin()"></select>
         </div>
@@ -2461,6 +2577,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="grundtexte">
       <!-- Grundtexte -->
       <div style="padding:0 16px">
         <div class="admin-section-title">📝 Grundtexte der Bereiche <span></span></div>
@@ -2470,7 +2588,7 @@ self.addEventListener('message', event => {
           <span class="ib-icon">💡</span>
           <span>Die Vorlagentexte (Sofortmaßnahmen, Maßnahmen für Lehrpersonal und Schulleitung) sind hier <strong>sichtbar und anpassbar</strong> – ein Punkt pro Zeile. URLs im Text werden in der App automatisch als Link dargestellt. „Zurücksetzen" stellt die Original-Vorlage wieder her.</span>
         </div>
-        <div class="admin-field">
+        <div class="admin-field adm-sel">
           <label>BEREICH AUSWÄHLEN</label>
           <select id="content-screen-select" onchange="contentAdminScreen=this.value;renderContentAdmin()"></select>
         </div>
@@ -2478,6 +2596,8 @@ self.addEventListener('message', event => {
         <button class="btn-secondary" onclick="resetContent()">↺ Auf Vorlage zurücksetzen</button>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="konzept">
       <!-- Notfallkonzept -->
       <div style="padding:0 16px">
         <div class="admin-section-title">📋 Notfallkonzept <span></span></div>
@@ -2489,6 +2609,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="krise">
       <!-- Psychiatrie-Kontakte -->
       <div style="padding:0 16px">
         <div class="admin-section-title">💙 Krisencontakte <span></span></div>
@@ -2512,6 +2634,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="durchsagen">
       <!-- Durchsagen -->
       <div style="padding:0 16px">
         <div class="admin-section-title">📢 Durchsagetexte <span></span></div>
@@ -2525,6 +2649,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="teilen">
       <!-- App teilen / QR -->
       <div style="padding:0 16px">
         <div class="admin-section-title">🔗 App teilen <span></span></div>
@@ -2541,6 +2667,8 @@ self.addEventListener('message', event => {
           <button class="btn-secondary" onclick="showQRCode()">📱 QR-Code erzeugen (für Aushang)</button>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="pwa">
       <!-- PWA Status -->
       <div style="padding:0 16px">
         <div class="admin-section-title">📲 Offline / PWA-Status <span></span></div>
@@ -2568,6 +2696,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="sicherung">
       <!-- Export/Import -->
       <div style="padding:0 16px">
         <div class="admin-section-title">💾 Datensicherung <span></span></div>
@@ -2584,6 +2714,8 @@ self.addEventListener('message', event => {
         </div>
       </div>
 
+      </div>
+      <div class="adm-part" data-part="session">
       <!-- Abmelden -->
       <div style="padding:0 16px 0">
         <div class="admin-section-title">🚪 Session <span></span></div>
@@ -2592,6 +2724,8 @@ self.addEventListener('message', event => {
         <button class="btn-primary" id="btn-save-config" onclick="saveConfig()">💾 Konfiguration speichern</button>
         <button class="btn-secondary" style="margin-top:10px" onclick="lockAdmin()">🔒 Admin-Bereich sperren</button>
       </div>
+      </div>
+      <div class="adm-part" data-part="ueber">
       <!-- Über diese App / Ersteller -->
       <div style="padding:0 16px">
         <div class="admin-section-title">ℹ️ Über diese App <span></span></div>
@@ -2611,6 +2745,9 @@ self.addEventListener('message', event => {
         </div>
         <p class="text-center" style="font-size:11px;color:rgba(255,255,255,0.3);padding:8px 16px 24px">SOS Schule Notfallapp · Version <span id="app-version">2.10.0</span><br>Erstellt am BSZ Cham · Frei nutzbar für Schulen</p>
       </div>
+      </div>
+      </div>
+      <div class="adm-savebar" id="adm-savebar"><button class="btn-primary" id="adm-save-btn" onclick="admSave()">💾 Speichern</button><div class="adm-savestate" id="adm-savestate"></div></div>
     </div>
   </div>
 
@@ -2767,7 +2904,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.11.1';
+const APP_VERSION = '2.12.0';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -5476,6 +5613,520 @@ document.addEventListener('DOMContentLoaded', async () => {
   else if (!serverAccess) maybeShowWizard(); // Erststart-Assistent (alter Weg)
   setTimeout(checkPWAStatus, 1500);
 });
+
+/* ============================================================
+   ADMIN 2.12 – Übersicht wie die Startseite
+   Die bisherigen Eingabebereiche (IDs, Funktionen, Datenformat)
+   bleiben unverändert; sie werden nur je nach gewählter Kachel
+   in die Bearbeitungsseite verschoben.
+============================================================ */
+let admCurrent = null;   // { reopen, back }
+
+const ADM_PART_TITLES = {
+  standorte: '📍 Wichtige Standorte',
+  durchsagen: '📢 Durchsagetexte',
+  krise: '💙 Krisenkontakte',
+  konzept: '📋 Notfallkonzept (Text)',
+  tel: '📞 Telefonnummern',
+  checkliste: '✅ Checkliste',
+};
+// Zusätzliche Eingabebereiche je Kachel (zusätzlich zu Texten & eigenen Inhalten)
+const ADM_EXTRA = {
+  feuer:  { parts: ['standorte'] },
+  amok:   { parts: ['durchsagen'] },
+  bombe:  { parts: ['durchsagen'] },
+  unfall: { parts: ['standorte'] },
+  sani:   { parts: ['standorte'] },
+  suizid: { parts: ['krise'], imgs: [['leitfaden', 'Leitfaden der Schule']] },
+  flucht: { parts: ['standorte'], imgs: [['flucht', 'Fluchtwegsplan'], ['notausgang', 'Notausgänge'], ['rettung', 'Rettungswege']] },
+  konzept:{ parts: ['konzept'], imgs: [['konzept', 'Notfallkonzept als Bild / Scan']] },
+};
+
+function admPart(name) { return document.querySelector('.adm-part[data-part="' + name + '"]'); }
+
+function admSetTitle(p, t) {
+  const el = p.querySelector('.admin-section-title');
+  if (!el || !el.firstChild) return;
+  if (el.dataset.orig === undefined) el.dataset.orig = el.firstChild.textContent;
+  el.firstChild.textContent = t + ' ';
+}
+function admRestoreTitle(p) {
+  const el = p.querySelector('.admin-section-title');
+  if (el && el.dataset.orig !== undefined) { el.firstChild.textContent = el.dataset.orig; delete el.dataset.orig; }
+}
+
+function admStoreAll() {
+  const st = document.getElementById('adm-store');
+  const pb = document.getElementById('adm-pbody');
+  if (!st || !pb) return;
+  pb.querySelectorAll('.adm-part').forEach(p => { admRestoreTitle(p); st.appendChild(p); });
+  pb.innerHTML = '';
+}
+
+function admSectionHTML(title, inner) {
+  return `<div style="padding:0 16px"><div class="admin-section-title">${title} <span></span></div></div><div class="admin-section">${inner}</div>`;
+}
+
+function admOpen(title, items, opts) {
+  opts = opts || {};
+  admStoreAll();
+  const body = document.getElementById('adm-pbody');
+  document.getElementById('adm-ptitle').textContent = title;
+  document.querySelector('#adm-panel .adm-back').textContent = opts.backLabel || '‹ Übersicht';
+  items.forEach(it => {
+    if (!it) return;
+    if (it.part) {
+      const p = admPart(it.part);
+      if (!p) return;
+      if (it.title) admSetTitle(p, it.title);
+      body.appendChild(p);
+    } else if (it.html) {
+      const d = document.createElement('div');
+      d.innerHTML = it.html;
+      while (d.firstChild) body.appendChild(d.firstChild);
+    }
+  });
+  const ac = document.getElementById('admin-content');
+  ac.classList.toggle('adm-tilemode', !!opts.tilemode);
+  document.getElementById('adm-home').style.display = 'none';
+  document.getElementById('adm-panel').style.display = '';
+  admCurrent = { reopen: opts.reopen || null, back: opts.back || null, title, backLabel: opts.backLabel || '‹ Übersicht' };
+  admHeader();
+  if (!opts.keepScroll) ac.scrollTop = 0;
+}
+
+function admBack() {
+  if (admCurrent && admCurrent.back) admCurrent.back(); else admShowHome();
+}
+
+function admShowHome() {
+  admStoreAll();
+  admCurrent = null;
+  const ac = document.getElementById('admin-content');
+  if (ac) ac.classList.remove('adm-tilemode');
+  const p = document.getElementById('adm-panel'); if (p) p.style.display = 'none';
+  const h = document.getElementById('adm-home'); if (h) h.style.display = '';
+  admRender();
+  admHeader();
+  if (ac) ac.scrollTop = 0;
+}
+
+function admReopen() {
+  if (admCurrent && admCurrent.reopen) {
+    const ac = document.getElementById('admin-content');
+    const y = ac ? ac.scrollTop : 0;
+    admCurrent.reopen(true);
+    if (ac) ac.scrollTop = y;
+  }
+}
+
+/* ---------- Kacheln: Titel & Status ---------- */
+function admTileInfo(key) {
+  const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
+  const bt = all.find(t => t.id === key);
+  if (bt) { const e = effectiveTile(bt); return { icon: e.icon, title: e.title, hidden: e.hidden, url: e.url, custom: false }; }
+  const t = (config.customTiles || []).find(x => x.id === key);
+  if (!t) return null;
+  return { icon: t.icon || '📌', title: t.title || 'Eigene Kachel', hidden: false, url: (t.url || '').trim(), custom: true };
+}
+
+function admTileState(key) {
+  const info = admTileInfo(key) || {};
+  if (info.hidden) return { sub: 'Auf der Startseite ausgeblendet', chip: 'ausgeblendet', ok: true };
+  if (info.url) return { sub: 'Öffnet Ihre eigene Webanwendung', chip: '↗ Link', ok: true };
+  const blocks = getBlocks(key).length;
+  const own = !!(config.screenContent || {})[key];
+  const parts = [];
+  if (own) parts.push('Texte angepasst');
+  if (blocks) parts.push(blocks + (blocks === 1 ? ' eigener Inhalt' : ' eigene Inhalte'));
+  if (info.custom) {
+    const t = (config.customTiles || []).find(x => x.id === key) || {};
+    if ((t.content || '').trim()) parts.unshift('Text vorhanden');
+    return parts.length ? { sub: parts.join(' · '), chip: '✓', ok: true } : { sub: 'Noch kein Inhalt', chip: '⚠ leer', ok: false, warn: true };
+  }
+  return parts.length ? { sub: parts.join(' · '), chip: '✓ angepasst', ok: true } : { sub: 'Vorlage der App', chip: 'Vorlage', ok: false };
+}
+
+// Gleiche Farbe wie auf der Startseite (Design „Klar“ bzw. „Modern“)
+function admColor(key, first) {
+  const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
+  const bt = all.find(t => t.id === key);
+  const ct = (config.customTiles || []).find(t => t.id === key);
+  const t = bt ? effectiveTile(bt) : { color: ct && TILE_COLORS.includes(ct.color) ? ct.color : 'gray' };
+  if (isKlar()) return klarColor(t, first);
+  return { red: 'red', orange: 'amber', blue: 'blue', green: 'green', purple: 'purple', gray: 'gray' }[t.color] || 'gray';
+}
+
+function admBtn(cls, key, back, idx, n) {
+  const info = admTileInfo(key);
+  if (!info) return '';
+  cls = admColor(key, !back);
+  const st = admTileState(key);
+  const k = escapeAttr(key), from = back ? "'weitere'" : 'null';
+  const tile = `<button class="adm-tile ${cls}" onclick="admOpenTile('${k}',${from})">
+    <span>${escapeHtml(stripEmoji(info.title))}<small>${escapeHtml(st.sub)}</small></span>
+    <span class="adm-chip ${st.warn ? 'warn' : ''}">${escapeHtml(st.chip)}</span></button>`;
+  if (idx === undefined) return tile;
+  return `<div class="adm-row">${tile}<div class="adm-mv">
+    <button title="Nach oben" aria-label="${escapeAttr(stripEmoji(info.title))} nach oben" ${idx === 0 ? 'disabled' : ''} onclick="admMove('${k}',-1,${from})">▲</button>
+    <button title="Nach unten" aria-label="${escapeAttr(stripEmoji(info.title))} nach unten" ${idx === n - 1 ? 'disabled' : ''} onclick="admMove('${k}',1,${from})">▼</button>
+  </div></div>`;
+}
+
+function admMove(key, dir, from) {
+  moveTile(key, dir);
+  const ac = document.getElementById('admin-content');
+  const y = ac ? ac.scrollTop : 0;
+  if (from === 'weitere') admOpenWeitere(); else admRender();
+  if (ac) ac.scrollTop = y;
+  admUpdateSaveState();
+}
+
+function admSections() {
+  ensureSections();
+  ensureTileIds();
+  return config.sections
+    .map(sec => ({ sec, keys: tilesInSection(sec.id).filter(k => admTileInfo(k)) }))
+    .filter(x => x.keys.length);
+}
+
+/* ---------- Übersicht ---------- */
+function admRender() {
+  const host = document.getElementById('adm-home');
+  if (!host || !config) return;
+  const secs = admSections();
+  const first = secs[0], rest = secs.slice(1);
+  let h = '<div class="adm-intro">Tippen Sie auf einen Bereich, um ihn zu bearbeiten – aufgebaut wie Ihre Startseite. Mit ▲ ▼ ändern Sie die Reihenfolge. Unten speichern Sie alle Änderungen.</div>';
+
+  const light = admTheme() === 'light';
+  h += `<div class="adm-theme"><span>Ansicht:</span><button class="${light ? 'on' : ''}" onclick="admSetTheme('light')">☀️ Hell</button><button class="${light ? '' : 'on'}" onclick="admSetTheme('dark')">🌙 Dunkel</button></div>`;
+  h += '<div class="adm-lbl">Notfälle</div>';
+  if (first) h += first.keys.map((k, i, a) => admBtn('red', k, false, i, a.length)).join('');
+  if (first) h += `<button class="adm-set" style="justify-content:center;border-style:dashed" onclick="admAddTile('${escapeAttr(first.sec.id)}')"><span>＋ Neue Kachel bei den Notfällen</span></button>`;
+  if (rest.length) {
+    const keys = rest.flatMap(x => x.keys);
+    const done = keys.filter(k => admTileState(k).ok).length;
+    const names = keys.slice(0, 4).map(k => stripEmoji((admTileInfo(k) || {}).title || '')).join(', ') + (keys.length > 4 ? ' …' : '');
+    h += `<button class="adm-tile amber" onclick="admOpenWeitere()"><span>Weitere Vorfälle<small>${escapeHtml(names)}</small></span>
+      <span class="adm-chip">${done} von ${keys.length} angepasst</span></button>`;
+  }
+
+  h += '<div class="adm-lbl">Informationen</div>';
+  const nTel = (config.telefonbuch || []).filter(t => !t.locked).length;
+  h += `<button class="adm-tile green" onclick="admOpenTel()"><span>☎ Telefonnummern<small>${nTel} ${nTel === 1 ? 'eigener Eintrag' : 'eigene Einträge'} (110 und 112 sind immer dabei)</small></span>
+    <span class="adm-chip ${nTel ? '' : 'warn'}">${nTel ? '✓' : '⚠ leer'}</span></button>`;
+  const miss = [];
+  if (!(config.sammelplatz || '').trim()) miss.push('Sammelplatz');
+  if (!config.img_flucht) miss.push('Fluchtwegsplan');
+  h += `<button class="adm-tile green" onclick="admOpenTile('flucht')"><span>➜ Fluchtwege<small>${miss.length ? escapeHtml(miss.join(' und ')) + (miss.length > 1 ? ' fehlen' : ' fehlt') : 'Plan und Sammelplatz eingetragen'}</small></span>
+    <span class="adm-chip ${miss.length ? 'warn' : ''}">${miss.length ? '⚠ offen' : '✓'}</span></button>`;
+  const hasK = !!((config.konzept || '').trim() || config.img_konzept || getBlocks('konzept').length);
+  h += `<button class="adm-tile green" onclick="admOpenTile('konzept')"><span>☰ Notfallkonzept<small>${hasK ? 'Inhalt vorhanden' : 'Noch kein Konzept hinterlegt'}</small></span>
+    <span class="adm-chip ${hasK ? '' : 'warn'}">${hasK ? '✓' : '⚠ leer'}</span></button>`;
+  const nD = (config.announcements || []).length, nC = (config.checklist || []).length;
+  h += `<button class="adm-tile gray" onclick="admOpenMehr()"><span>Durchsagen, Checkliste und mehr<small>${nD} Durchsagen · ${nC} Checkpunkte · Standorte</small></span>
+    <span class="adm-chip">›</span></button>`;
+
+  h += '<div class="adm-lbl">Einstellungen</div>';
+  h += `<button class="adm-set" onclick="admOpenSettings('schule')"><span>🏫 Schule, Logo, Farbe &amp; Design</span><span>›</span></button>`;
+  h += `<button class="adm-set" onclick="admOpenSettings('start')"><span>🧩 Startseite gestalten (Kacheln &amp; Bereiche)</span><span>›</span></button>`;
+  h += `<button class="adm-set" onclick="admOpenSettings('teilen')"><span>🔗 App teilen, PIN &amp; Datensicherung</span><span>›</span></button>`;
+  host.innerHTML = h;
+  admUpdateSaveState();
+}
+
+/* ---------- Bearbeitungsseiten ---------- */
+function admImgSection(imgs) {
+  const rows = imgs.map(([type, label]) => {
+    const src = config['img_' + type];
+    return `<div class="adm-imgrow">
+      ${src ? `<img src="${src}" alt="">` : '<div class="adm-noimg">Noch kein Bild</div>'}
+      <div><strong style="font-size:14px">${escapeHtml(label)}</strong><br>
+        <label class="btn-secondary adm-imgbtn">📷 ${src ? 'Bild ersetzen' : 'Bild hochladen'}<input type="file" accept="image/*" style="display:none" onchange="admImgUpload('${type}',this)"></label>
+        ${src ? `<button class="btn-secondary adm-imgbtn" onclick="admImgRemove('${type}')">🗑 Entfernen</button>` : ''}
+      </div></div>`;
+  }).join('');
+  return admSectionHTML('🖼️ Pläne &amp; Bilder', rows + '<p class="text-muted" style="font-size:12px;margin:0">Ein gut lesbares Handyfoto reicht. Große Bilder werden automatisch verkleinert.</p>');
+}
+
+function admImgUpload(type, input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  input.value = '';
+  resizeImage(f, 2000, d => { applyUploadedImg(type, d); admReopen(); admUpdateSaveState(); });
+}
+
+function admImgRemove(type) {
+  if (!confirm('Bild wirklich entfernen?')) return;
+  config['img_' + type] = '';   // leer statt löschen, damit es beim Veröffentlichen überall entfernt wird
+  const img = document.getElementById(type + '-img');
+  const et = document.getElementById(type + '-empty-text');
+  if (img) { img.removeAttribute('src'); img.style.display = 'none'; }
+  if (et) et.style.display = '';
+  markImgArea(type, false);
+  persistConfig();
+  if (typeof updatePublishBanner === 'function') updatePublishBanner();
+  admReopen();
+  admUpdateSaveState();
+}
+
+/* Kachel selbst: Name, Link zu eigener Webanwendung, Bereich, Position, Sichtbarkeit */
+function admTileSettings(key) {
+  const sel = 'width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 12px;color:var(--white);font-size:14px;font-family:var(--font-main)';
+  const ta = sel + ';min-height:110px;resize:vertical';
+  const ci = (config.customTiles || []).findIndex(t => t.id === key);
+  const isCustom = ci >= 0;
+  const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
+  const bt = all.find(t => t.id === key);
+  const o = isCustom ? config.customTiles[ci] : ((config.tileOverrides || {})[key] || {});
+  const set = f => isCustom ? `config.customTiles[${ci}].${f}=this.value` : `setTileOverride('${key}','${f}',this.value)`;
+  const secOpts = config.sections.map(s => `<option value="${escapeAttr(s.id)}" ${sectionOf(key) === s.id ? 'selected' : ''}>${escapeHtml(stripEmoji(s.label))}</option>`).join('');
+  const colorNames = { red: '🔴 Rot', orange: '🟠 Orange', blue: '🔵 Blau', green: '🟢 Grün', purple: '🟣 Lila', gray: '⚪ Grau' };
+  let h = `
+    <div class="admin-field"><label>NAME AUF DER KACHEL</label>
+      <input type="text" value="${escapeAttr(o.title || '')}" placeholder="${escapeAttr(bt ? bt.title : 'z. B. Hausalarm')}" oninput="${set('title')};renderHomeTiles()"></div>
+    <div class="admin-field"><label>UNTERTITEL (klein darunter, optional)</label>
+      <input type="text" value="${escapeAttr(o.sub || '')}" placeholder="${escapeAttr(bt ? bt.sub : '')}" oninput="${set('sub')};renderHomeTiles()"></div>
+    <div class="admin-field"><label>LINK ZU EIGENER WEBANWENDUNG (optional)</label>
+      <input type="url" value="${escapeAttr(o.url || '')}" placeholder="https://… z. B. Ihre SaniAlarm-Seite" oninput="${set('url')};renderHomeTiles()">
+      <p class="text-muted" style="font-size:12px;margin:6px 0 0">Steht hier ein Link, öffnet die Kachel <strong>diese Seite</strong> statt der Inhalte weiter unten. Feld leeren = wieder Inhalte der App.</p></div>
+    <div class="admin-field"><label>WO ERSCHEINT DIE KACHEL?</label>
+      <select style="${sel}" onchange="${isCustom ? `config.customTiles[${ci}].section=this.value` : `setTileOverride('${key}','section',this.value)`};renderHomeTiles()">${secOpts}</select>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-secondary adm-imgbtn" onclick="moveTile('${escapeAttr(key)}',-1);renderHomeTiles();admUpdateSaveState()">↑ weiter nach oben</button>
+        <button class="btn-secondary adm-imgbtn" onclick="moveTile('${escapeAttr(key)}',1);renderHomeTiles();admUpdateSaveState()">↓ weiter nach unten</button>
+      </div></div>`;
+  if (isCustom) {
+    h += `
+    <div class="admin-field"><label>SYMBOL (Emoji, nur im Design „Modern“)</label>
+      <input type="text" value="${escapeAttr(o.icon || '')}" placeholder="📌" oninput="config.customTiles[${ci}].icon=this.value"></div>
+    <div class="admin-field"><label>FARBE</label>
+      <select style="${sel}" onchange="config.customTiles[${ci}].color=this.value;renderHomeTiles()">${TILE_COLORS.map(c => `<option value="${c}" ${o.color === c ? 'selected' : ''}>${colorNames[c]}</option>`).join('')}</select></div>
+    <div class="admin-field"><label>TEXT DER KACHEL</label>
+      <textarea style="${ta}" placeholder="Anweisungen, Infos …" oninput="config.customTiles[${ci}].content=this.value">${escapeHtml(o.content || '')}</textarea></div>
+    <button class="btn-secondary" style="border-color:rgba(231,76,60,0.6);color:#FF8A80" onclick="admDeleteTile(${ci})">🗑 Diese Kachel löschen</button>`;
+  } else {
+    h += `
+    <label style="display:flex;align-items:center;gap:10px;font-size:14px;padding:4px 0;cursor:pointer">
+      <input type="checkbox" ${o.hidden ? 'checked' : ''} onchange="setTileOverride('${key}','hidden',this.checked);renderHomeTiles()" style="width:auto;margin:0">
+      Kachel auf der Startseite ausblenden</label>`;
+  }
+  return admSectionHTML('⚙️ Kachel: Name, Link &amp; Platz', h);
+}
+
+function admAddTile(sid, from) {
+  ensureSections();
+  config.customTiles = config.customTiles || [];
+  const id = 'ct' + Math.random().toString(36).slice(2, 9);
+  config.customTiles.push({ id, icon: '📌', title: 'Neue Kachel', sub: '', color: sid === (config.sections[0] || {}).id ? 'red' : 'orange', content: '', url: '', section: sid });
+  renderHomeTiles();
+  admOpenTile(id, from);
+  showToast('Neue Kachel angelegt – Name eintragen und speichern');
+}
+
+function admDeleteTile(i) {
+  const t = config.customTiles[i];
+  if (!t || !confirm('Kachel „' + (t.title || 'Eigene Kachel') + '“ wirklich löschen?')) return;
+  if (t.id && config.screenBlocks) delete config.screenBlocks[t.id];
+  config.customTiles.splice(i, 1);
+  renderHomeTiles();
+  admShowHome();
+  showToast('Kachel gelöscht – bitte noch speichern');
+}
+
+function admOpenTile(key, from, keepScroll) {
+  const info = admTileInfo(key);
+  const isScreen = key === 'flucht' || key === 'konzept';
+  if (!info && !isScreen) return;
+  const title = key === 'flucht' ? '➜ Fluchtwege' : key === 'konzept' ? '☰ Notfallkonzept' : stripEmoji(info.title);
+  const items = [];
+  if (info) items.push({ html: admTileSettings(key) });
+  if (info && info.url) {
+    items.push({ html: `<p class="adm-hint">ℹ️ Diese Kachel öffnet zurzeit Ihre eigene Webanwendung. Die Inhalte unten werden erst wieder angezeigt, wenn Sie oben den Link löschen.</p>` });
+  }
+  if (BUILTIN_CONTENT[key]) {
+    contentAdminScreen = key;
+    renderContentAdmin();
+    items.push({ part: 'grundtexte', title: '📝 Was ist zu tun? (Texte der App)' });
+    items.push({ html: '<p class="adm-hint" style="margin-top:-6px">Ein Punkt pro Zeile. „Auf Vorlage zurücksetzen“ stellt die Originaltexte wieder her.</p>' });
+  }
+  const ex = ADM_EXTRA[key] || {};
+  (ex.parts || []).forEach(p => items.push({ part: p, title: ADM_PART_TITLES[p] }));
+  if (ex.imgs) items.push({ html: admImgSection(ex.imgs) });
+  blockAdminScreen = key;
+  renderBlocksAdmin();
+  items.push({ part: 'bausteine', title: '🧱 Eigene Inhalte der Schule' });
+  items.push({ html: '<p class="adm-hint">Zusätzliche Texte, Links, Telefonnummern oder Bilder Ihrer Schule – sie erscheinen unter den Texten der App. Mit ◀ ▶ einrücken, mit ↑ ↓ sortieren.</p>' });
+  admOpen(title, items, {
+    tilemode: true, keepScroll,
+    backLabel: from === 'weitere' ? '‹ Weitere Vorfälle' : '‹ Übersicht',
+    back: from === 'weitere' ? admOpenWeitere : null,
+    reopen: ks => admOpenTile(key, from, ks),
+  });
+}
+
+function admOpenWeitere() {
+  const rest = admSections().slice(1);
+  let h = '<div style="padding:0 16px"><p class="adm-intro" style="margin-top:0">Tippen Sie auf einen Vorfall, um ihn zu bearbeiten. Mit ▲ ▼ ändern Sie die Reihenfolge.</p>';
+  rest.forEach(x => {
+    if (rest.length > 1) h += `<div class="adm-lbl">${escapeHtml(stripEmoji(x.sec.label))}</div>`;
+    h += x.keys.map((k, i, a) => admBtn('amber', k, true, i, a.length)).join('');
+  });
+  const sid = rest.length ? rest[rest.length - 1].sec.id : 'vorfaelle';
+  h += `<button class="adm-set" style="justify-content:center;border-style:dashed" onclick="admAddTile('${escapeAttr(sid)}','weitere')"><span>＋ Neue Kachel bei „Weitere Vorfälle“</span></button>`;
+  h += '</div>';
+  admOpen('Weitere Vorfälle', [{ html: h }], { reopen: () => admOpenWeitere() });
+}
+
+function admOpenTel() {
+  admOpen('☎ Telefonnummern', [
+    { part: 'tel', title: '📞 Telefonnummern' },
+  ], { reopen: () => admOpenTel() });
+}
+
+function admOpenMehr() {
+  admOpen('Durchsagen, Checkliste und mehr', [
+    { part: 'durchsagen', title: ADM_PART_TITLES.durchsagen },
+    { part: 'checkliste', title: ADM_PART_TITLES.checkliste },
+    { part: 'standorte', title: ADM_PART_TITLES.standorte },
+  ], { reopen: () => admOpenMehr() });
+}
+
+function admOpenSettings(which) {
+  if (which === 'schule') {
+    admOpen('🏫 Schule, Logo, Farbe & Design', [{ part: 'identity' }], { reopen: () => admOpenSettings('schule') });
+  } else if (which === 'start') {
+    renderTilesAdmin();
+    admOpen('🧩 Startseite gestalten', [
+      { html: '<p class="adm-hint">Hier legen Sie fest, welche Kacheln auf der Startseite erscheinen, in welcher Reihenfolge und unter welcher Überschrift. Die <strong>Inhalte</strong> der Kacheln bearbeiten Sie in der Übersicht durch Antippen der Kachel.</p>' },
+      { part: 'kacheln', title: '🧩 Kacheln & Bereiche' },
+    ], { reopen: () => admOpenSettings('start') });
+  } else {
+    admOpen('🔗 App teilen, PIN & Datensicherung', [
+      { part: 'teilen' }, { part: 'pin', title: '🔐 PIN ändern' }, { part: 'sicherung' },
+      { part: 'pwa' }, { part: 'session', title: '🔒 Admin-Bereich sperren' }, { part: 'ueber' },
+    ], { reopen: () => admOpenSettings('teilen') });
+  }
+}
+
+/* ---------- Speichern ---------- */
+function admSave() {
+  saveConfig();
+  setTimeout(() => { if (!admCurrent) admRender(); admUpdateSaveState(); }, 400);
+}
+
+function admSyncSaveBtn() {
+  const src = document.getElementById('btn-save-config');
+  const dst = document.getElementById('adm-save-btn');
+  if (!src || !dst) return;
+  dst.textContent = src.textContent;
+  dst.disabled = !!src.disabled;
+}
+
+function admUpdateSaveState() {
+  const el = document.getElementById('adm-savestate');
+  if (!el) return;
+  let txt = '', warn = false;
+  try {
+    const m = loadMeta();
+    if (serverAccess && hasUnpublishedChanges()) { txt = '⚠ Änderungen noch nicht veröffentlicht'; warn = true; }
+    else if (m.lastSavedAt) txt = 'Zuletzt gespeichert: ' + new Date(m.lastSavedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' Uhr';
+  } catch (e) {}
+  el.textContent = txt;
+  el.classList.toggle('warn', warn);
+}
+
+/* ---------- Helle oder dunkle Ansicht (pro Gerät gespeichert) ---------- */
+function admTheme() {
+  try { return localStorage.getItem('sos-admin-ansicht') === 'dark' ? 'dark' : 'light'; } catch (e) { return 'light'; }
+}
+function admApplyTheme() {
+  const scr = document.getElementById('screen-admin');
+  if (scr) scr.classList.toggle('adm-light', admTheme() === 'light');
+}
+function admSetTheme(t) {
+  try { localStorage.setItem('sos-admin-ansicht', t); } catch (e) {}
+  admApplyTheme();
+  admRender();
+}
+
+/* ---------- Kopfzeile: klar getrennt „Zurück“ (eine Ebene) und „Zur App“ ---------- */
+function admHeader() {
+  const scr = document.getElementById('screen-admin');
+  if (!scr) return;
+  const back = scr.querySelector('.header .back-btn');
+  const exit = document.getElementById('adm-exit');
+  const ht = scr.querySelector('.header .header-title');
+  const sub = ht && ht.querySelector('.header-subtitle');
+  const ac = document.getElementById('admin-content');
+  const unlocked = adminUnlocked && ac && ac.style.display !== 'none';
+  let title, subtitle;
+  if (!unlocked) {
+    back.style.display = ''; back.textContent = '‹ Zur App';
+    if (exit) exit.style.display = 'none';
+    title = '⚙️ Administration'; subtitle = 'Bitte PIN eingeben';
+  } else if (admCurrent) {
+    back.style.display = ''; back.textContent = admCurrent.backLabel || '‹ Übersicht';
+    if (exit) exit.style.display = '';
+    title = stripEmoji(admCurrent.title || 'Bearbeiten');
+    subtitle = 'Administration › ' + (admCurrent.backLabel || '‹ Übersicht').replace('‹', '').trim() + ' › ' + stripEmoji(title);
+  } else {
+    back.style.display = 'none';
+    if (exit) exit.style.display = '';
+    title = '⚙️ Administration'; subtitle = 'Übersicht – wählen Sie aus, was Sie bearbeiten';
+  }
+  if (ht && ht.firstChild && ht.firstChild.nodeType === 3) ht.firstChild.textContent = title;
+  if (sub) sub.textContent = subtitle;
+}
+
+function admHeaderBack() {
+  if (adminUnlocked && admCurrent) admBack(); else goBack();
+}
+
+function admExit() {
+  try {
+    if (serverAccess && hasUnpublishedChanges()
+        && !confirm('Ihre Änderungen sind noch nicht veröffentlicht. Trotzdem zur App wechseln?')) return;
+  } catch (e) {}
+  admShowHome();
+  goHome();
+}
+
+(function admInit() {
+  const orig = populateAdminForm;
+  populateAdminForm = function () {
+    orig.apply(this, arguments);
+    try {
+      if (admCurrent && admCurrent.reopen) admReopen(); else admShowHome();
+      admSyncSaveBtn();
+    } catch (e) { console.error('Admin-Übersicht', e); }
+  };
+  const src = document.getElementById('btn-save-config');
+  if (src && 'MutationObserver' in window) {
+    new MutationObserver(admSyncSaveBtn).observe(src, { childList: true, characterData: true, subtree: true, attributes: true });
+  }
+  admSyncSaveBtn();
+  const back = document.querySelector('#adm-panel .adm-back');
+  if (back) back.setAttribute('onclick', 'admBack()');
+  const scr = document.getElementById('screen-admin');
+  const hb = scr && scr.querySelector('.header .back-btn');
+  if (hb) { hb.setAttribute('onclick', 'admHeaderBack()'); hb.classList.add('adm-hback'); }
+  const hdr = scr && scr.querySelector('.header');
+  if (hdr && !document.getElementById('adm-exit')) {
+    const b = document.createElement('button');
+    b.id = 'adm-exit'; b.className = 'adm-exit'; b.textContent = 'Zur App ✕';
+    b.setAttribute('onclick', 'admExit()');
+    hdr.appendChild(b);
+  }
+  ['initAdmin', 'lockAdminNow'].forEach(fn => {
+    const o = window[fn];
+    if (typeof o !== 'function') return;
+    window[fn] = function () { const r = o.apply(this, arguments); try { admHeader(); } catch (e) {} return r; };
+  });
+  admApplyTheme();
+  admHeader();
+})();
+
 </script>
 </body>
 </html>
