@@ -721,6 +721,12 @@ self.addEventListener('message', event => {
   .adm-imgrow img, .adm-noimg { width: 88px; height: 66px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.06);
     display: flex; align-items: center; justify-content: center; font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; }
   .adm-imgbtn { display: inline-flex !important; width: auto !important; padding: 7px 12px !important; margin: 6px 6px 0 0 !important; font-size: 13px !important; cursor: pointer; }
+  .adm-phead { display: none !important; }
+  #screen-admin .header .adm-hback { width: auto; height: 36px; border-radius: 18px; padding: 0 14px; font-size: 14px; font-weight: 700; white-space: nowrap; font-family: var(--font-main); }
+  .adm-exit { flex-shrink: 0; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.45); color: #fff; border-radius: 18px; height: 36px;
+    padding: 0 12px; font-family: var(--font-main); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  #screen-admin .header-title { min-width: 0; }
+  #screen-admin .header-subtitle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 </style>
 <style id="design-klar-css">
@@ -5632,7 +5638,8 @@ function admOpen(title, items, opts) {
   ac.classList.toggle('adm-tilemode', !!opts.tilemode);
   document.getElementById('adm-home').style.display = 'none';
   document.getElementById('adm-panel').style.display = '';
-  admCurrent = { reopen: opts.reopen || null, back: opts.back || null };
+  admCurrent = { reopen: opts.reopen || null, back: opts.back || null, title, backLabel: opts.backLabel || '‹ Übersicht' };
+  admHeader();
   if (!opts.keepScroll) ac.scrollTop = 0;
 }
 
@@ -5648,6 +5655,7 @@ function admShowHome() {
   const p = document.getElementById('adm-panel'); if (p) p.style.display = 'none';
   const h = document.getElementById('adm-home'); if (h) h.style.display = '';
   admRender();
+  admHeader();
   if (ac) ac.scrollTop = 0;
 }
 
@@ -5948,6 +5956,48 @@ function admUpdateSaveState() {
   el.classList.toggle('warn', warn);
 }
 
+/* ---------- Kopfzeile: klar getrennt „Zurück“ (eine Ebene) und „Zur App“ ---------- */
+function admHeader() {
+  const scr = document.getElementById('screen-admin');
+  if (!scr) return;
+  const back = scr.querySelector('.header .back-btn');
+  const exit = document.getElementById('adm-exit');
+  const ht = scr.querySelector('.header .header-title');
+  const sub = ht && ht.querySelector('.header-subtitle');
+  const ac = document.getElementById('admin-content');
+  const unlocked = adminUnlocked && ac && ac.style.display !== 'none';
+  let title, subtitle;
+  if (!unlocked) {
+    back.style.display = ''; back.textContent = '‹ Zur App';
+    if (exit) exit.style.display = 'none';
+    title = '⚙️ Administration'; subtitle = 'Bitte PIN eingeben';
+  } else if (admCurrent) {
+    back.style.display = ''; back.textContent = admCurrent.backLabel || '‹ Übersicht';
+    if (exit) exit.style.display = '';
+    title = admCurrent.title || 'Bearbeiten';
+    subtitle = 'Administration › ' + (admCurrent.backLabel || '‹ Übersicht').replace('‹', '').trim() + ' › ' + stripEmoji(title);
+  } else {
+    back.style.display = 'none';
+    if (exit) exit.style.display = '';
+    title = '⚙️ Administration'; subtitle = 'Übersicht – wählen Sie aus, was Sie bearbeiten';
+  }
+  if (ht && ht.firstChild && ht.firstChild.nodeType === 3) ht.firstChild.textContent = title;
+  if (sub) sub.textContent = subtitle;
+}
+
+function admHeaderBack() {
+  if (adminUnlocked && admCurrent) admBack(); else goBack();
+}
+
+function admExit() {
+  try {
+    if (serverAccess && hasUnpublishedChanges()
+        && !confirm('Ihre Änderungen sind noch nicht veröffentlicht. Trotzdem zur App wechseln?')) return;
+  } catch (e) {}
+  admShowHome();
+  goHome();
+}
+
 (function admInit() {
   const orig = populateAdminForm;
   populateAdminForm = function () {
@@ -5964,6 +6014,22 @@ function admUpdateSaveState() {
   admSyncSaveBtn();
   const back = document.querySelector('#adm-panel .adm-back');
   if (back) back.setAttribute('onclick', 'admBack()');
+  const scr = document.getElementById('screen-admin');
+  const hb = scr && scr.querySelector('.header .back-btn');
+  if (hb) { hb.setAttribute('onclick', 'admHeaderBack()'); hb.classList.add('adm-hback'); }
+  const hdr = scr && scr.querySelector('.header');
+  if (hdr && !document.getElementById('adm-exit')) {
+    const b = document.createElement('button');
+    b.id = 'adm-exit'; b.className = 'adm-exit'; b.textContent = 'Zur App ✕';
+    b.setAttribute('onclick', 'admExit()');
+    hdr.appendChild(b);
+  }
+  ['initAdmin', 'lockAdminNow'].forEach(fn => {
+    const o = window[fn];
+    if (typeof o !== 'function') return;
+    window[fn] = function () { const r = o.apply(this, arguments); try { admHeader(); } catch (e) {} return r; };
+  });
+  admHeader();
 })();
 
 </script>
