@@ -2767,7 +2767,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.11.0';
+const APP_VERSION = '2.11.1';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -2879,12 +2879,27 @@ function loadConfig() {
   } catch(e) { /* ignore */ }
 }
 
+function hasLocalConfig() {
+  try { return localStorage.getItem(STORAGE_KEY) !== null; } catch (e) { return false; }
+}
+
 function persistConfig() {
+  const data = JSON.stringify(config);
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    localStorage.setItem(STORAGE_KEY, data);
   } catch(e) {
+    // Platz schaffen: Der alte geräteweite Speicher (< 2.6.1) wird bei
+    // Schul-Links nicht mehr gelesen und kann große Bilder enthalten.
+    let ok = false;
+    try {
+      if (schoolScope() && localStorage.getItem(STORAGE_KEY_BASE) !== null) {
+        localStorage.removeItem(STORAGE_KEY_BASE);
+        localStorage.setItem(STORAGE_KEY, data);
+        ok = true;
+      }
+    } catch (e2) { /* weiterhin voll */ }
     // Meist: Speicher des Browsers voll (sehr große Bilder)
-    if (typeof showToast === 'function') showToast('⚠ Gerätespeicher voll – bitte kleinere Bilder verwenden');
+    if (!ok && typeof showToast === 'function') showToast('⚠ Gerätespeicher voll – bitte kleinere Bilder verwenden');
   }
 }
 
@@ -5256,7 +5271,8 @@ async function loadServerConfig(quiet) {
     lastServerFetch = Date.now();
     const m = loadMeta();
     // Server-Stand unverändert → lokalen Stand behalten (auch noch nicht veröffentlichte Änderungen)
-    if (remote.updatedAt && m.serverUpdatedAt === remote.updatedAt) return true;
+    // … aber nur, wenn auf diesem Gerät überhaupt eigene Daten gespeichert sind
+    if (remote.updatedAt && m.serverUpdatedAt === remote.updatedAt && hasLocalConfig()) return true;
     // Server hat eine neuere Fassung: lokale, unveröffentlichte Änderungen vorher sichern
     if (hasUnpublishedChanges()) {
       saveLocalBackup();
