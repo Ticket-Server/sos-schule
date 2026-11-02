@@ -735,6 +735,50 @@ self.addEventListener('message', event => {
   .adm-mv button { flex: 1; width: 42px; min-height: 28px; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.08); color: #fff;
     border-radius: 10px; font-size: 13px; cursor: pointer; }
   .adm-mv button:disabled { opacity: .2; cursor: default; }
+  /* ---------- Helle Ansicht des Admin-Bereichs ---------- */
+  .adm-theme { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; font-size: 13px; color: rgba(255,255,255,0.6); }
+  .adm-theme button { border: 1px solid rgba(255,255,255,0.25); background: transparent; color: inherit; border-radius: 16px; padding: 5px 12px;
+    font-family: var(--font-main); font-size: 13px; cursor: pointer; }
+  .adm-theme button.on { background: var(--school-primary); border-color: var(--school-primary); color: #fff; font-weight: 700; }
+  #screen-admin.adm-light { background: #F4F2EE !important; color: #1F1F1D !important; }
+  #screen-admin.adm-light .admin-section-title { color: #6B6B66; }
+  #screen-admin.adm-light .admin-section-title span { background: #DDD9CF; }
+  #screen-admin.adm-light .admin-field, #screen-admin.adm-light .tel-admin-row, #screen-admin.adm-light .pwa-status-card { background: #FFFFFF; border: 1px solid #E2DFD6; }
+  #screen-admin.adm-light .admin-field label { color: #6B6B66; }
+  #screen-admin.adm-light .admin-field input, #screen-admin.adm-light .admin-field textarea, #screen-admin.adm-light .admin-field select { color: #1F1F1D; }
+  #screen-admin.adm-light select option { background: #FFFFFF; color: #1F1F1D; }
+  #screen-admin.adm-light .tel-admin-inputs input { background: #F6F5F1; border-color: #D9D6CC; color: #1F1F1D; }
+  #screen-admin.adm-light .btn-add { background: #FFFFFF; border-color: #BDB8AC; color: #4A4A46; }
+  #screen-admin.adm-light .btn-add:hover { background: #F6F5F1; color: #1F1F1D; }
+  #screen-admin.adm-light .btn-secondary { background: #EEECE6; color: #1F1F1D; border-color: #DDD9CF; }
+  #screen-admin.adm-light .btn-secondary:hover { background: #E3E0D8; }
+  #screen-admin.adm-light .info-banner { color: #1F1F1D; }
+  #screen-admin.adm-light .info-banner:not([style*="background"]) { background: #FFFFFF; border-color: #E2DFD6; }
+  #screen-admin.adm-light .text-muted { color: #6B6B66 !important; }
+  #screen-admin.adm-light .pin-digit { background: #FFFFFF; border-color: #CFCBC0; color: #1F1F1D; }
+  #screen-admin.adm-light .admin-locked p, #screen-admin.adm-light .logo-upload-text { color: #6B6B66; }
+  #screen-admin.adm-light .logo-upload { border-color: #CFCBC0; }
+  #screen-admin.adm-light .tag.green { background: #E3F1DA; color: #2E6B12; }
+  #screen-admin.adm-light .tag.orange { background: #FDEBD3; color: #8A4B00; }
+  #screen-admin.adm-light .tag.red { background: #FBE3E0; color: #A12C20; }
+  #screen-admin.adm-light .tag { background: #EEECE6; color: #3A3A37; }
+  #screen-admin.adm-light a { color: #1F5FAD !important; }
+  #screen-admin.adm-light [style*="color:rgba(255,255,255"], #screen-admin.adm-light [style*="color: rgba(255,255,255"] { color: #6B6B66 !important; }
+  #screen-admin.adm-light [style*="background:rgba(255,255,255"], #screen-admin.adm-light [style*="background: rgba(255,255,255"] { background: #F6F5F1 !important; }
+  #screen-admin.adm-light [style*="border:1px solid rgba(255,255,255"], #screen-admin.adm-light [style*="border-color:rgba(255,255,255"] { border-color: #D9D6CC !important; }
+  #screen-admin.adm-light [style*="color:var(--white)"] { color: #1F1F1D !important; }
+  #screen-admin.adm-light .adm-intro, #screen-admin.adm-light .adm-hint, #screen-admin.adm-light .adm-theme { color: #4A4A46; }
+  #screen-admin.adm-light .adm-theme button { border-color: #CFCBC0; }
+  #screen-admin.adm-light .adm-lbl { color: #6B6B66; }
+  #screen-admin.adm-light .adm-set { background: #FFFFFF; border-color: #DDD9CF; color: #1F1F1D; }
+  #screen-admin.adm-light .adm-tile.gray { border: 1px solid #DDD9CF; }
+  #screen-admin.adm-light .adm-savebar { background: #F4F2EE; border-top-color: #DDD9CF; }
+  #screen-admin.adm-light .adm-savestate { color: #6B6B66; }
+  #screen-admin.adm-light .adm-savestate.warn { color: #8A4B00; font-weight: 700; }
+  #screen-admin.adm-light .adm-mv button { background: #FFFFFF; border-color: #CFCBC0; color: #3A3A37; }
+  #screen-admin.adm-light .adm-noimg { background: #EEECE6; color: #8A8A85; }
+  #screen-admin.adm-light .adm-imgrow strong { color: #1F1F1D; }
+  #screen-admin .header-title { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 </style>
 <style id="design-klar-css">
@@ -5754,6 +5798,8 @@ function admRender() {
   const first = secs[0], rest = secs.slice(1);
   let h = '<div class="adm-intro">Tippen Sie auf einen Bereich, um ihn zu bearbeiten – aufgebaut wie Ihre Startseite. Mit ▲ ▼ ändern Sie die Reihenfolge. Unten speichern Sie alle Änderungen.</div>';
 
+  const light = admTheme() === 'light';
+  h += `<div class="adm-theme"><span>Ansicht:</span><button class="${light ? 'on' : ''}" onclick="admSetTheme('light')">☀️ Hell</button><button class="${light ? '' : 'on'}" onclick="admSetTheme('dark')">🌙 Dunkel</button></div>`;
   h += '<div class="adm-lbl">Notfälle</div>';
   if (first) h += first.keys.map((k, i, a) => admBtn('red', k, false, i, a.length)).join('');
   if (first) h += `<button class="adm-set" style="justify-content:center;border-style:dashed" onclick="admAddTile('${escapeAttr(first.sec.id)}')"><span>＋ Neue Kachel bei den Notfällen</span></button>`;
@@ -5990,6 +6036,20 @@ function admUpdateSaveState() {
   el.classList.toggle('warn', warn);
 }
 
+/* ---------- Helle oder dunkle Ansicht (pro Gerät gespeichert) ---------- */
+function admTheme() {
+  try { return localStorage.getItem('sos-admin-ansicht') === 'dark' ? 'dark' : 'light'; } catch (e) { return 'light'; }
+}
+function admApplyTheme() {
+  const scr = document.getElementById('screen-admin');
+  if (scr) scr.classList.toggle('adm-light', admTheme() === 'light');
+}
+function admSetTheme(t) {
+  try { localStorage.setItem('sos-admin-ansicht', t); } catch (e) {}
+  admApplyTheme();
+  admRender();
+}
+
 /* ---------- Kopfzeile: klar getrennt „Zurück“ (eine Ebene) und „Zur App“ ---------- */
 function admHeader() {
   const scr = document.getElementById('screen-admin');
@@ -6008,7 +6068,7 @@ function admHeader() {
   } else if (admCurrent) {
     back.style.display = ''; back.textContent = admCurrent.backLabel || '‹ Übersicht';
     if (exit) exit.style.display = '';
-    title = admCurrent.title || 'Bearbeiten';
+    title = stripEmoji(admCurrent.title || 'Bearbeiten');
     subtitle = 'Administration › ' + (admCurrent.backLabel || '‹ Übersicht').replace('‹', '').trim() + ' › ' + stripEmoji(title);
   } else {
     back.style.display = 'none';
@@ -6063,6 +6123,7 @@ function admExit() {
     if (typeof o !== 'function') return;
     window[fn] = function () { const r = o.apply(this, arguments); try { admHeader(); } catch (e) {} return r; };
   });
+  admApplyTheme();
   admHeader();
 })();
 
