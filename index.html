@@ -2533,11 +2533,12 @@ self.addEventListener('message', event => {
         <div class="pwa-status-card">
           <div style="font-size:22px">🌐</div>
           <div class="pwa-status-info">
-            <strong>App-URL</strong>
+            <strong id="share-label">App-URL</strong>
             <span id="share-url" style="word-break:break-all">–</span>
           </div>
         </div>
-        <button class="btn-secondary" onclick="showQRCode()">📱 QR-Code erzeugen (für Aushang)</button>
+        <button class="btn-secondary mb-8" onclick="copyShareLink()">📋 Link kopieren</button>
+          <button class="btn-secondary" onclick="showQRCode()">📱 QR-Code erzeugen (für Aushang)</button>
       </div>
 
       <!-- PWA Status -->
@@ -2766,7 +2767,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.10.0';
+const APP_VERSION = '2.11.0';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -2867,7 +2868,8 @@ function loadConfig() {
       // Einmalige Migration: ältere App-Versionen (<2.6.1) nutzten einen
       // geräteweiten Schlüssel ohne Pfad-Trennung. Übernehmen, falls vorhanden,
       // damit auf diesem Gerät bereits eingegebene Daten nicht verloren gehen.
-      const legacy = localStorage.getItem(STORAGE_KEY_BASE);
+      // Nicht bei Schul-Links (?s=…): sonst landen alte Gerätedaten in einer neuen Schule
+      const legacy = schoolScope() ? null : localStorage.getItem(STORAGE_KEY_BASE);
       if (legacy) { raw = legacy; try { localStorage.setItem(STORAGE_KEY, legacy); } catch (e) {} }
     }
     if (raw) {
@@ -3241,12 +3243,7 @@ function populateAdminForm() {
   document.getElementById('cfg-psy-tel').value = config.psyTel || '';
   document.getElementById('cfg-address').value = config.schoolAddress || '';
   renderDurchsagenAdmin();
-  const shareUrl = document.getElementById('share-url');
-  if (shareUrl) {
-    shareUrl.textContent = location.protocol.startsWith('http')
-      ? location.origin + location.pathname
-      : 'Lokale Datei – URL nach Webserver-Upload verfügbar';
-  }
+  updateShareUrl();
 
   // color swatches
   document.querySelectorAll('.color-swatch').forEach(sw => {
@@ -4894,12 +4891,19 @@ const QRGen = (() => {
   return { make };
 })();
 
-function showQRCode() {
-  let url = location.protocol.startsWith('http')
-    ? location.origin + location.pathname
-    : location.href.split('?')[0].split('#')[0];
-  // Modell C: ?config=-Parameter gehört zur Schul-URL und muss im QR-Code enthalten sein
-  if (remoteConfigUrl) url += '?config=' + remoteConfigUrl;
+async function showQRCode() {
+  let url;
+  if (serverAccess) {
+    // Schul-Link über den Worker: Kurzlink verwenden (der lange Link mit
+    // Schlüssel passt nicht in einen QR-Code und die reine App-Adresse
+    // würde eine leere App ohne Schuldaten öffnen)
+    url = await fetchShortLink();
+    if (!url) { showToast('⚠ Kurzlink nicht verfügbar – bitte mit Internet erneut versuchen'); return; }
+  } else {
+    url = location.protocol.startsWith('http') ? location.origin + location.pathname : location.href.split('?')[0].split('#')[0];
+    // Modell C: ?config=-Parameter gehört zur Schul-URL und muss im QR-Code enthalten sein
+    if (remoteConfigUrl) url += '?config=' + remoteConfigUrl;
+  }
   const m = QRGen.make(url);
   document.getElementById('qr-url').textContent = url;
   if (!m) { showToast('⚠ URL zu lang für QR-Code (max. ~100 Zeichen)'); return; }
@@ -5191,6 +5195,41 @@ function initServerAccess() {
 
 function apiUrl(path) {
   return API_BASE + '/api/schule/' + encodeURIComponent(serverAccess.s) + (path || '');
+}
+
+/* ---------- Kurzlink der Schule (für Teilen & QR-Code) ---------- */
+const SHORT_KEY = STORAGE_KEY + '::kurzlink';
+function cachedShortLink() { try { return localStorage.getItem(SHORT_KEY) || ''; } catch (e) { return ''; } }
+async function fetchShortLink() {
+  if (!serverAccess) return '';
+  try {
+    const res = await fetch(apiUrl('/kurzlink?k=' + encodeURIComponent(serverAccess.k)), { cache: 'no-store' });
+    if (res.ok) {
+      const d = await res.json();
+      if (d && d.shortLink) { try { localStorage.setItem(SHORT_KEY, d.shortLink); } catch (e) {} return d.shortLink; }
+    } else if (res.status === 403 || res.status === 404) {
+      try { localStorage.removeItem(SHORT_KEY); } catch (e) {}
+      return '';
+    }
+  } catch (e) { /* offline – zuletzt bekannten Kurzlink verwenden */ }
+  return cachedShortLink();
+}
+function plainAppUrl() { return location.protocol.startsWith('http') ? location.origin + location.pathname : ''; }
+async function updateShareUrl() {
+  const el = document.getElementById('share-url');
+  const lbl = document.getElementById('share-label');
+  if (!el) return;
+  if (lbl) lbl.textContent = serverAccess ? 'Kurzlink Ihrer Schule' : 'App-URL';
+  if (!serverAccess) { el.textContent = plainAppUrl() || 'Lokale Datei – URL nach Webserver-Upload verfügbar'; return; }
+  el.textContent = cachedShortLink() || 'wird ermittelt …';
+  const l = await fetchShortLink();
+  el.textContent = l || 'Kurzlink nicht verfügbar – bitte mit Internet erneut öffnen';
+}
+async function copyShareLink() {
+  const l = serverAccess ? await fetchShortLink() : plainAppUrl();
+  if (!l) { showToast('⚠ Link nicht verfügbar – bitte mit Internet erneut versuchen'); return; }
+  try { await navigator.clipboard.writeText(l); showToast(serverAccess ? '✓ Kurzlink kopiert' : '✓ Link kopiert'); }
+  catch (e) { window.prompt('Link zum Kopieren:', l); }
 }
 
 // Nur die Inhalte, die veröffentlicht werden (ohne Gerätedaten und PIN)
