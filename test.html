@@ -729,6 +729,12 @@ self.addEventListener('message', event => {
   #screen-admin .header-subtitle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .adm-tile.blue { background: #2980B9; }
   .adm-tile.purple { background: #8E44AD; }
+  .adm-row { display: flex; gap: 8px; align-items: stretch; margin: 0 0 10px; }
+  .adm-row .adm-tile { margin: 0; flex: 1; min-width: 0; }
+  .adm-mv { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .adm-mv button { flex: 1; width: 42px; min-height: 28px; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.08); color: #fff;
+    border-radius: 10px; font-size: 13px; cursor: pointer; }
+  .adm-mv button:disabled { opacity: .2; cursor: default; }
 
 </style>
 <style id="design-klar-css">
@@ -5707,14 +5713,29 @@ function admColor(key, first) {
   return { red: 'red', orange: 'amber', blue: 'blue', green: 'green', purple: 'purple', gray: 'gray' }[t.color] || 'gray';
 }
 
-function admBtn(cls, key, back) {
+function admBtn(cls, key, back, idx, n) {
   const info = admTileInfo(key);
   if (!info) return '';
   cls = admColor(key, !back);
   const st = admTileState(key);
-  return `<button class="adm-tile ${cls}" onclick="admOpenTile('${escapeAttr(key)}',${back ? "'weitere'" : 'null'})">
+  const k = escapeAttr(key), from = back ? "'weitere'" : 'null';
+  const tile = `<button class="adm-tile ${cls}" onclick="admOpenTile('${k}',${from})">
     <span>${escapeHtml(stripEmoji(info.title))}<small>${escapeHtml(st.sub)}</small></span>
     <span class="adm-chip ${st.warn ? 'warn' : ''}">${escapeHtml(st.chip)}</span></button>`;
+  if (idx === undefined) return tile;
+  return `<div class="adm-row">${tile}<div class="adm-mv">
+    <button title="Nach oben" aria-label="${escapeAttr(stripEmoji(info.title))} nach oben" ${idx === 0 ? 'disabled' : ''} onclick="admMove('${k}',-1,${from})">▲</button>
+    <button title="Nach unten" aria-label="${escapeAttr(stripEmoji(info.title))} nach unten" ${idx === n - 1 ? 'disabled' : ''} onclick="admMove('${k}',1,${from})">▼</button>
+  </div></div>`;
+}
+
+function admMove(key, dir, from) {
+  moveTile(key, dir);
+  const ac = document.getElementById('admin-content');
+  const y = ac ? ac.scrollTop : 0;
+  if (from === 'weitere') admOpenWeitere(); else admRender();
+  if (ac) ac.scrollTop = y;
+  admUpdateSaveState();
 }
 
 function admSections() {
@@ -5731,10 +5752,10 @@ function admRender() {
   if (!host || !config) return;
   const secs = admSections();
   const first = secs[0], rest = secs.slice(1);
-  let h = '<div class="adm-intro">Tippen Sie auf einen Bereich, um ihn zu bearbeiten – aufgebaut wie Ihre Startseite. Unten speichern Sie alle Änderungen.</div>';
+  let h = '<div class="adm-intro">Tippen Sie auf einen Bereich, um ihn zu bearbeiten – aufgebaut wie Ihre Startseite. Mit ▲ ▼ ändern Sie die Reihenfolge. Unten speichern Sie alle Änderungen.</div>';
 
   h += '<div class="adm-lbl">Notfälle</div>';
-  if (first) h += first.keys.map(k => admBtn('red', k)).join('');
+  if (first) h += first.keys.map((k, i, a) => admBtn('red', k, false, i, a.length)).join('');
   if (first) h += `<button class="adm-set" style="justify-content:center;border-style:dashed" onclick="admAddTile('${escapeAttr(first.sec.id)}')"><span>＋ Neue Kachel bei den Notfällen</span></button>`;
   if (rest.length) {
     const keys = rest.flatMap(x => x.keys);
@@ -5900,10 +5921,10 @@ function admOpenTile(key, from, keepScroll) {
 
 function admOpenWeitere() {
   const rest = admSections().slice(1);
-  let h = '<div style="padding:0 16px"><p class="adm-intro" style="margin-top:0">Tippen Sie auf einen Vorfall, um ihn zu bearbeiten.</p>';
+  let h = '<div style="padding:0 16px"><p class="adm-intro" style="margin-top:0">Tippen Sie auf einen Vorfall, um ihn zu bearbeiten. Mit ▲ ▼ ändern Sie die Reihenfolge.</p>';
   rest.forEach(x => {
     if (rest.length > 1) h += `<div class="adm-lbl">${escapeHtml(stripEmoji(x.sec.label))}</div>`;
-    h += x.keys.map(k => admBtn('amber', k, true)).join('');
+    h += x.keys.map((k, i, a) => admBtn('amber', k, true, i, a.length)).join('');
   });
   const sid = rest.length ? rest[rest.length - 1].sec.id : 'vorfaelle';
   h += `<button class="adm-set" style="justify-content:center;border-style:dashed" onclick="admAddTile('${escapeAttr(sid)}','weitere')"><span>＋ Neue Kachel bei „Weitere Vorfälle“</span></button>`;
