@@ -5672,7 +5672,8 @@ function admTileInfo(key) {
 
 function admTileState(key) {
   const info = admTileInfo(key) || {};
-  if (info.url) return { sub: 'Öffnet einen externen Link', chip: '↗ Link', ok: true };
+  if (info.hidden) return { sub: 'Auf der Startseite ausgeblendet', chip: 'ausgeblendet', ok: true };
+  if (info.url) return { sub: 'Öffnet Ihre eigene Webanwendung', chip: '↗ Link', ok: true };
   const blocks = getBlocks(key).length;
   const own = !!(config.screenContent || {})[key];
   const parts = [];
@@ -5699,7 +5700,7 @@ function admSections() {
   ensureSections();
   ensureTileIds();
   return config.sections
-    .map(sec => ({ sec, keys: tilesInSection(sec.id).filter(k => tileByKey(k)) }))
+    .map(sec => ({ sec, keys: tilesInSection(sec.id).filter(k => admTileInfo(k)) }))
     .filter(x => x.keys.length);
 }
 
@@ -5713,6 +5714,7 @@ function admRender() {
 
   h += '<div class="adm-lbl">Notfälle</div>';
   if (first) h += first.keys.map(k => admBtn('red', k)).join('');
+  if (first) h += `<button class="adm-set" style="justify-content:center;border-style:dashed" onclick="admAddTile('${escapeAttr(first.sec.id)}')"><span>＋ Neue Kachel bei den Notfällen</span></button>`;
   if (rest.length) {
     const keys = rest.flatMap(x => x.keys);
     const done = keys.filter(k => admTileState(k).ok).length;
@@ -5780,14 +5782,68 @@ function admImgRemove(type) {
   admUpdateSaveState();
 }
 
-function admCustomEditor(i) {
+/* Kachel selbst: Name, Link zu eigener Webanwendung, Bereich, Position, Sichtbarkeit */
+function admTileSettings(key) {
+  const sel = 'width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 12px;color:var(--white);font-size:14px;font-family:var(--font-main)';
+  const ta = sel + ';min-height:110px;resize:vertical';
+  const ci = (config.customTiles || []).findIndex(t => t.id === key);
+  const isCustom = ci >= 0;
+  const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
+  const bt = all.find(t => t.id === key);
+  const o = isCustom ? config.customTiles[ci] : ((config.tileOverrides || {})[key] || {});
+  const set = f => isCustom ? `config.customTiles[${ci}].${f}=this.value` : `setTileOverride('${key}','${f}',this.value)`;
+  const secOpts = config.sections.map(s => `<option value="${escapeAttr(s.id)}" ${sectionOf(key) === s.id ? 'selected' : ''}>${escapeHtml(stripEmoji(s.label))}</option>`).join('');
+  const colorNames = { red: '🔴 Rot', orange: '🟠 Orange', blue: '🔵 Blau', green: '🟢 Grün', purple: '🟣 Lila', gray: '⚪ Grau' };
+  let h = `
+    <div class="admin-field"><label>NAME AUF DER KACHEL</label>
+      <input type="text" value="${escapeAttr(o.title || '')}" placeholder="${escapeAttr(bt ? bt.title : 'z. B. Hausalarm')}" oninput="${set('title')};renderHomeTiles()"></div>
+    <div class="admin-field"><label>UNTERTITEL (klein darunter, optional)</label>
+      <input type="text" value="${escapeAttr(o.sub || '')}" placeholder="${escapeAttr(bt ? bt.sub : '')}" oninput="${set('sub')};renderHomeTiles()"></div>
+    <div class="admin-field"><label>LINK ZU EIGENER WEBANWENDUNG (optional)</label>
+      <input type="url" value="${escapeAttr(o.url || '')}" placeholder="https://… z. B. Ihre SaniAlarm-Seite" oninput="${set('url')};renderHomeTiles()">
+      <p class="text-muted" style="font-size:12px;margin:6px 0 0">Steht hier ein Link, öffnet die Kachel <strong>diese Seite</strong> statt der Inhalte weiter unten. Feld leeren = wieder Inhalte der App.</p></div>
+    <div class="admin-field"><label>WO ERSCHEINT DIE KACHEL?</label>
+      <select style="${sel}" onchange="${isCustom ? `config.customTiles[${ci}].section=this.value` : `setTileOverride('${key}','section',this.value)`};renderHomeTiles()">${secOpts}</select>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-secondary adm-imgbtn" onclick="moveTile('${escapeAttr(key)}',-1);renderHomeTiles();admUpdateSaveState()">↑ weiter nach oben</button>
+        <button class="btn-secondary adm-imgbtn" onclick="moveTile('${escapeAttr(key)}',1);renderHomeTiles();admUpdateSaveState()">↓ weiter nach unten</button>
+      </div></div>`;
+  if (isCustom) {
+    h += `
+    <div class="admin-field"><label>SYMBOL (Emoji, nur im Design „Modern“)</label>
+      <input type="text" value="${escapeAttr(o.icon || '')}" placeholder="📌" oninput="config.customTiles[${ci}].icon=this.value"></div>
+    <div class="admin-field"><label>FARBE</label>
+      <select style="${sel}" onchange="config.customTiles[${ci}].color=this.value;renderHomeTiles()">${TILE_COLORS.map(c => `<option value="${c}" ${o.color === c ? 'selected' : ''}>${colorNames[c]}</option>`).join('')}</select></div>
+    <div class="admin-field"><label>TEXT DER KACHEL</label>
+      <textarea style="${ta}" placeholder="Anweisungen, Infos …" oninput="config.customTiles[${ci}].content=this.value">${escapeHtml(o.content || '')}</textarea></div>
+    <button class="btn-secondary" style="border-color:rgba(231,76,60,0.6);color:#FF8A80" onclick="admDeleteTile(${ci})">🗑 Diese Kachel löschen</button>`;
+  } else {
+    h += `
+    <label style="display:flex;align-items:center;gap:10px;font-size:14px;padding:4px 0;cursor:pointer">
+      <input type="checkbox" ${o.hidden ? 'checked' : ''} onchange="setTileOverride('${key}','hidden',this.checked);renderHomeTiles()" style="width:auto;margin:0">
+      Kachel auf der Startseite ausblenden</label>`;
+  }
+  return admSectionHTML('⚙️ Kachel: Name, Link &amp; Platz', h);
+}
+
+function admAddTile(sid, from) {
+  ensureSections();
+  config.customTiles = config.customTiles || [];
+  const id = 'ct' + Math.random().toString(36).slice(2, 9);
+  config.customTiles.push({ id, icon: '📌', title: 'Neue Kachel', sub: '', color: sid === (config.sections[0] || {}).id ? 'red' : 'orange', content: '', url: '', section: sid });
+  renderHomeTiles();
+  admOpenTile(id, from);
+  showToast('Neue Kachel angelegt – Name eintragen und speichern');
+}
+
+function admDeleteTile(i) {
   const t = config.customTiles[i];
-  const ta = 'width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:8px 10px;color:var(--white);font-size:13px;font-family:var(--font-main);min-height:110px;resize:vertical';
-  return admSectionHTML('🧩 Eigene Kachel', `
-    <div class="admin-field"><label>TITEL</label><input type="text" value="${escapeAttr(t.title || '')}" oninput="config.customTiles[${i}].title=this.value;document.getElementById('adm-ptitle').textContent=(config.customTiles[${i}].icon||'📌')+' '+this.value"></div>
-    <div class="admin-field"><label>UNTERTITEL</label><input type="text" value="${escapeAttr(t.sub || '')}" oninput="config.customTiles[${i}].sub=this.value"></div>
-    <div class="admin-field"><label>INHALT</label><textarea style="${ta}" oninput="config.customTiles[${i}].content=this.value">${escapeHtml(t.content || '')}</textarea></div>
-    <p class="text-muted" style="font-size:12px;margin:0">Symbol, Farbe, Link und Löschen: unter Einstellungen → „Startseite gestalten“.</p>`);
+  if (!t || !confirm('Kachel „' + (t.title || 'Eigene Kachel') + '“ wirklich löschen?')) return;
+  if (t.id && config.screenBlocks) delete config.screenBlocks[t.id];
+  config.customTiles.splice(i, 1);
+  renderHomeTiles();
+  admShowHome();
+  showToast('Kachel gelöscht – bitte noch speichern');
 }
 
 function admOpenTile(key, from, keepScroll) {
@@ -5796,12 +5852,9 @@ function admOpenTile(key, from, keepScroll) {
   if (!info && !isScreen) return;
   const title = key === 'flucht' ? '➜ Fluchtwege' : key === 'konzept' ? '☰ Notfallkonzept' : stripEmoji(info.title);
   const items = [];
-  if (info && info.custom) {
-    const i = (config.customTiles || []).findIndex(t => t.id === key);
-    items.push({ html: admCustomEditor(i) });
-  }
+  if (info) items.push({ html: admTileSettings(key) });
   if (info && info.url) {
-    items.push({ html: `<p class="adm-hint">ℹ️ Diese Kachel öffnet einen externen Link (${escapeHtml(info.url)}). Ändern unter Einstellungen → „Startseite gestalten“.</p>` });
+    items.push({ html: `<p class="adm-hint">ℹ️ Diese Kachel öffnet zurzeit Ihre eigene Webanwendung. Die Inhalte unten werden erst wieder angezeigt, wenn Sie oben den Link löschen.</p>` });
   }
   if (BUILTIN_CONTENT[key]) {
     contentAdminScreen = key;
@@ -5831,6 +5884,8 @@ function admOpenWeitere() {
     if (rest.length > 1) h += `<div class="adm-lbl">${escapeHtml(stripEmoji(x.sec.label))}</div>`;
     h += x.keys.map(k => admBtn('amber', k, true)).join('');
   });
+  const sid = rest.length ? rest[rest.length - 1].sec.id : 'vorfaelle';
+  h += `<button class="adm-set" style="justify-content:center;border-style:dashed" onclick="admAddTile('${escapeAttr(sid)}','weitere')"><span>＋ Neue Kachel bei „Weitere Vorfälle“</span></button>`;
   h += '</div>';
   admOpen('Weitere Vorfälle', [{ html: h }], { reopen: () => admOpenWeitere() });
 }
