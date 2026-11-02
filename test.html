@@ -727,6 +727,8 @@ self.addEventListener('message', event => {
     padding: 0 12px; font-family: var(--font-main); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
   #screen-admin .header-title { min-width: 0; }
   #screen-admin .header-subtitle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .adm-tile.blue { background: #2980B9; }
+  .adm-tile.purple { background: #8E44AD; }
 
 </style>
 <style id="design-klar-css">
@@ -5695,9 +5697,20 @@ function admTileState(key) {
   return parts.length ? { sub: parts.join(' · '), chip: '✓ angepasst', ok: true } : { sub: 'Vorlage der App', chip: 'Vorlage', ok: false };
 }
 
+// Gleiche Farbe wie auf der Startseite (Design „Klar“ bzw. „Modern“)
+function admColor(key, first) {
+  const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
+  const bt = all.find(t => t.id === key);
+  const ct = (config.customTiles || []).find(t => t.id === key);
+  const t = bt ? effectiveTile(bt) : { color: ct && TILE_COLORS.includes(ct.color) ? ct.color : 'gray' };
+  if (isKlar()) return klarColor(t, first);
+  return { red: 'red', orange: 'amber', blue: 'blue', green: 'green', purple: 'purple', gray: 'gray' }[t.color] || 'gray';
+}
+
 function admBtn(cls, key, back) {
   const info = admTileInfo(key);
   if (!info) return '';
+  cls = admColor(key, !back);
   const st = admTileState(key);
   return `<button class="adm-tile ${cls}" onclick="admOpenTile('${escapeAttr(key)}',${back ? "'weitere'" : 'null'})">
     <span>${escapeHtml(stripEmoji(info.title))}<small>${escapeHtml(st.sub)}</small></span>
