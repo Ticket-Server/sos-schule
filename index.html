@@ -155,8 +155,10 @@ self.addEventListener('message', event => {
     setTimeout(() => showInstallBanner(), 3000);
   });
 
+  const INSTALL_OFF_KEY = 'sos_install_hinweis_aus';
   function showInstallBanner() {
     if (!deferredPrompt) return;
+    try { if (localStorage.getItem(INSTALL_OFF_KEY)) return; } catch (e) {}
     const banner = document.getElementById('pwa-install-banner');
     if (banner) banner.classList.add('visible');
   }
@@ -175,7 +177,8 @@ self.addEventListener('message', event => {
   window.dismissInstallBanner = function() {
     const banner = document.getElementById('pwa-install-banner');
     if (banner) banner.classList.remove('visible');
-    deferredPrompt = null;
+    try { localStorage.setItem(INSTALL_OFF_KEY, '1'); } catch (e) {}
+    // deferredPrompt bleibt erhalten: Installieren geht weiter über den Admin-Bereich
   };
 
   function showPWAToast(msg) {
@@ -1795,6 +1798,58 @@ self.addEventListener('message', event => {
   .pwa-status-info { flex: 1; }
   .pwa-status-info strong { display:block; font-size:14px; font-weight:700; }
   .pwa-status-info span   { font-size:12px; color:rgba(255,255,255,0.5); }
+
+  /* ===== 2.13: Logo, Kürzel, Kachel-Details, Telefon-Sortierung ===== */
+  .home-logo.wide { width: auto; min-width: 64px; max-width: 220px; padding: 0 12px; white-space: nowrap; font-size: 18px; }
+  .home-logo.has-img { width: auto; min-width: 64px; max-width: 190px; padding: 5px; }
+  .home-logo.has-img img { width: auto; height: 100%; max-width: 100%; object-fit: contain; }
+  .design-klar .home-logo.wide { width: auto; min-width: 44px; max-width: 170px; padding: 0 9px; font-size: 14px; }
+  .design-klar .home-logo.has-img { width: auto; min-width: 44px; max-width: 140px; padding: 3px; }
+  .home-logo-area > div:not(.home-logo) { min-width: 0; }
+  .klar-btn.blue   { background: #2471A3; color: #FFFFFF; }
+  .klar-btn.purple { background: #7D3C98; color: #FFFFFF; }
+  .klar-btn.tgreen { background: #3B6D11; color: #FFFFFF; }
+  .klar-btn.tgray  { background: #EEECE6; color: #3A3A37; }
+  .klar-btn.kb-det { justify-content: flex-start; text-align: left; }
+  .klar-btn .kb-txt { display: block; }
+  .klar-btn .kb-sub { display: block; font-size: 14px; font-weight: 600; opacity: .85; margin-top: 2px; letter-spacing: 0; }
+  .tel-mv { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; align-self: stretch; justify-content: center; }
+  .tel-mv button { width: 36px; min-height: 30px; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.08); color: #fff; border-radius: 9px; font-size: 12px; cursor: pointer; }
+  .tel-mv button:disabled { opacity: .2; cursor: default; }
+  .tel-admin-row.tel-locked { align-items: center; }
+  #screen-admin.adm-light .tel-mv button { background: #FFFFFF; border-color: #CFCBC0; color: #3A3A37; }
+
+  /* ===== 2.13: Durchsagen-Großanzeige, leere Bildkästen, Installationshinweis ===== */
+  .screen:not(#screen-admin) .img-upload-area:not(.has-img):not(.has-pdf) { display: none !important; }
+  .img-upload-area.has-pdf { cursor: pointer; min-height: 0 !important; }
+  .img-upload-area.has-pdf input { pointer-events: none; }
+  .pwa-banner-text strong { color: #FFFFFF; }
+  #screen-admin.adm-light button[style*="color:#FF8A80"] { color: #B03A2E !important; border-color: #E3A59E !important; background: #FFFFFF !important; }
+  #screen-admin.adm-light .tel-admin-inputs textarea, #screen-admin.adm-light .tel-admin-inputs select,
+  #screen-admin.adm-light .admin-section textarea, #screen-admin.adm-light .admin-section select { color: #1F1F1D !important; background: #F6F5F1 !important; border-color: #D9D6CC !important; }
+  #ds-big { position: fixed; inset: 0; z-index: 400; display: none; flex-direction: column; background: #3A3A37; color: #fff; }
+  #ds-big.open { display: flex; }
+  .ds-big-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top)); }
+  #ds-big-title { font-weight: 800; font-size: 18px; opacity: .9; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ds-big-bar button { border: 2px solid currentColor; background: transparent; color: inherit; border-radius: 12px; min-width: 52px; height: 46px; font-size: 18px; font-weight: 800; cursor: pointer; font-family: var(--font-main); }
+  #ds-big-body { flex: 1; overflow-y: auto; padding: 8px 22px 28px; }
+  #ds-big-text { font-weight: 800; line-height: 1.3; white-space: pre-wrap; font-family: var(--font-main); }
+
+  #pdf-ready { position: fixed; inset: 0; z-index: 450; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .pdf-ready-box { background: #FFFFFF; color: #1F1F1D; border-radius: 16px; padding: 22px 18px 16px; width: 100%; max-width: 360px; text-align: center; }
+
+  [data-loc] { position: relative; }
+  .loc-del { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: rgba(231,76,60,0.15); color: #E74C3C; font-size: 14px; cursor: pointer; }
+  [data-loc] input { padding-right: 40px !important; }
+  .loc-restore { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+  #screen-admin.adm-light .loc-restore { color: #6B6B66; }
+
+  .adm-call-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .adm-call-row input { width: 100%; margin-bottom: 6px !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 8px !important; padding: 9px 11px !important; background: rgba(255,255,255,0.06) !important; font-size: 15px !important; }
+  #screen-admin.adm-light .adm-call-row input { background: #F6F5F1 !important; border-color: #D9D6CC !important; color: #1F1F1D !important; }
+  .call-actions { padding: 0 16px 12px; }
+  .adm-call-sel { width: auto !important; max-width: 100%; border-radius: 8px; padding: 7px 10px; font-size: 13px; font-family: var(--font-main); background: rgba(255,255,255,0.06); color: inherit; border: 1px solid rgba(255,255,255,0.2); margin: 6px 0 0; }
+  #screen-admin.adm-light .adm-call-sel { background: #FFFFFF; border-color: #CFCBC0; color: #1F1F1D; }
 </style>
 </head>
 <body>
@@ -1938,7 +1993,7 @@ self.addEventListener('message', event => {
       <div id="content-unfall"></div>
       <div class="content-card">
         <div class="content-card-header">🏥 Wichtige Standorte</div>
-        <div class="content-card-body" id="standorte-content">
+        <div class="content-card-body" id="standorte-content" data-screen="unfall">
           <p class="text-muted">Standorte im Admin-Bereich konfigurieren.</p>
         </div>
       </div>
@@ -2181,7 +2236,7 @@ self.addEventListener('message', event => {
         <div class="text-muted text-center" style="padding:40px 0">Fügen Sie das Notfallkonzept im Admin-Bereich ein.</div>
       </div>
       <div class="img-upload-area" id="konzept-img-area" onclick="triggerImgUpload('konzept')">
-        <input type="file" accept="image/*,application/pdf" onchange="handleImgUpload('konzept', this)">
+        <input type="file" accept="image/*" onchange="handleImgUpload('konzept', this)">
         <img id="konzept-img" src="" alt="" style="display:none">
         <div class="iu-text" id="konzept-empty-text">
           <div class="iu-icon">📋</div>
@@ -2209,7 +2264,7 @@ self.addEventListener('message', event => {
       </div>
       <div class="content-card">
         <div class="content-card-header">📍 Defibrillator & Sanitätsraum</div>
-        <div class="content-card-body" id="sani-standorte">
+        <div class="content-card-body" id="sani-standorte" data-screen="sani">
           <p class="text-muted">Standorte im Admin konfigurieren.</p>
         </div>
       </div>
@@ -2254,6 +2309,7 @@ self.addEventListener('message', event => {
     </div>
     <div class="scroll-content">
       <div class="durchsage-full" id="durchsage-view-text"></div>
+      <div style="padding:4px 16px 4px"><button class="klar-btn red" style="margin:0" onclick="dsBigOpen()">⛶ Großanzeige zum Vorlesen</button></div>
       <div class="info-banner" style="margin-top:8px">
         <span class="ib-icon">🗣️</span>
         <span>Langsam und deutlich sprechen. Durchsage 2× wiederholen.</span>
@@ -2432,7 +2488,8 @@ self.addEventListener('message', event => {
         </div>
         <div class="admin-field">
           <label>SCHULKÜRZEL (für Logo)</label>
-          <input type="text" id="cfg-school-abbr" maxlength="4" placeholder="z.B. BSC">
+          <input type="text" id="cfg-school-abbr" maxlength="10" placeholder="z.B. BSZ Cham" oninput="config.schoolAbbr=this.value.trim()||'SOS';applyBranding()">
+          <p class="text-muted" style="font-size:12px;margin:6px 14px 10px">Bis zu 10 Zeichen. Wird nur angezeigt, wenn kein Logo-Bild hochgeladen ist.</p>
         </div>
         <div class="admin-field">
           <label>SCHULFARBE</label>
@@ -2456,6 +2513,8 @@ self.addEventListener('message', event => {
             <img id="logo-preview" class="logo-upload-preview" src="" alt="">
             <div class="logo-upload-text">📷 Logo-Bild hochladen (optional)</div>
           </div>
+          <p class="text-muted" style="font-size:12px;margin:8px 14px 4px">Quer-, Hoch- oder Quadratformat – das Logo wird vollständig angezeigt. PNG mit transparentem Hintergrund oder SVG sieht am besten aus.</p>
+          <button class="btn-secondary adm-imgbtn" id="logo-remove-btn" style="display:none;margin:4px 14px 12px !important" onclick="removeLogo()">🗑 Logo entfernen</button>
         </div>
       </div>
 
@@ -2483,7 +2542,7 @@ self.addEventListener('message', event => {
         <button class="btn-add" onclick="addTelEntry()">＋ Kontakt hinzufügen</button>
         <div class="info-banner">
           <span class="ib-icon">💡</span>
-          <span>Notruf 110 (Polizei) und 112 (Feuer/Rettung) sind immer automatisch vorhanden.</span>
+          <span>Notruf 110 (Polizei) und 112 (Feuer/Rettung) sind immer vorhanden. Mit ▲ ▼ legen Sie die Reihenfolge aller Nummern fest – so erscheinen sie auch in der App.</span>
         </div>
       </div>
 
@@ -2494,23 +2553,23 @@ self.addEventListener('message', event => {
         <div class="admin-section-title">📍 Wichtige Standorte <span></span></div>
       </div>
       <div class="admin-section">
-        <div class="admin-field">
+        <div class="admin-field" data-loc="defi">
           <label>DEFIBRILLATOR STANDORT</label>
           <input type="text" id="cfg-defi" placeholder="z.B. Aula, Eingang links">
         </div>
-        <div class="admin-field">
+        <div class="admin-field" data-loc="saniRoom">
           <label>SANITÄTSRAUM</label>
           <input type="text" id="cfg-sani-room" placeholder="z.B. Raum A0.17">
         </div>
-        <div class="admin-field">
+        <div class="admin-field" data-loc="sammelplatz">
           <label>SAMMELPLATZ</label>
           <input type="text" id="cfg-sammelplatz" placeholder="z.B. Parkplatz Westseite">
         </div>
-        <div class="admin-field">
+        <div class="admin-field" data-loc="brandmel">
           <label>BRANDMELDETABLEAU</label>
           <input type="text" id="cfg-brandmel" placeholder="z.B. Haupteingang, Raum 001">
         </div>
-        <div class="admin-field">
+        <div class="admin-field" data-loc="address">
           <label>SCHULADRESSE (für Notruf-Assistent)</label>
           <input type="text" id="cfg-address" placeholder="z.B. Badstraße 23, 93413 Cham">
         </div>
@@ -2569,6 +2628,7 @@ self.addEventListener('message', event => {
           <button class="btn-add" style="flex:1;min-width:110px;margin-bottom:0" onclick="addBlock('link')">＋ 🔗 Link</button>
           <button class="btn-add" style="flex:1;min-width:110px;margin-bottom:0" onclick="addBlock('tel')">＋ 📞 Telefon</button>
           <button class="btn-add" style="flex:1;min-width:110px;margin-bottom:0" onclick="addBlock('image')">＋ 🖼️ Bild</button>
+          <button class="btn-add" style="flex:1;min-width:110px;margin-bottom:0" onclick="addBlock('pdf')">＋ 📑 PDF</button>
           <button class="btn-add" style="flex:1;min-width:110px;margin-bottom:0" onclick="addBlock('group')">＋ 📂 Kategorie</button>
         </div>
         <div class="info-banner mt-16">
@@ -2645,7 +2705,7 @@ self.addEventListener('message', event => {
         <button class="btn-add" onclick="addDurchsage()">＋ Durchsage hinzufügen</button>
         <div class="info-banner">
           <span class="ib-icon">💡</span>
-          <span>Diese Texte erscheinen unter „Durchsagen" in Großschrift zum direkten Ablesen bei einer Lautsprecherdurchsage.</span>
+          <span>Titel, Farbe und Text jeder Durchsage können Sie hier frei ändern; mit ▲ ▼ legen Sie die Reihenfolge fest. In der App gibt es zu jeder Durchsage eine bildschirmfüllende Großanzeige zum Vorlesen.</span>
         </div>
       </div>
 
@@ -2811,7 +2871,7 @@ self.addEventListener('message', event => {
     </div>
     <div class="wizard-step" style="display:none">
       <label>Schulkürzel (für das Logo)</label>
-      <input type="text" id="wiz-abbr" class="wizard-input" maxlength="4" placeholder="z.B. BSC">
+      <input type="text" id="wiz-abbr" class="wizard-input" maxlength="10" placeholder="z.B. BSZ Cham">
       <label>Schulfarbe</label>
       <div class="wizard-colors">
         <div class="wizard-color selected" style="background:#C0392B" data-color="#C0392B" onclick="wizardSelectColor(this)"></div>
@@ -2881,6 +2941,19 @@ self.addEventListener('message', event => {
 <!-- PWA: OFFLINE BADGE -->
 <div id="offline-badge">✈️ Offline-Modus</div>
 
+<!-- Durchsage: Großanzeige -->
+<div id="ds-big" onclick="if(event.target===this)dsBigClose()">
+  <div class="ds-big-bar">
+    <div id="ds-big-title"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="dsZoom(-4)" aria-label="Schrift kleiner">A−</button>
+      <button onclick="dsZoom(4)" aria-label="Schrift größer">A+</button>
+      <button onclick="dsBigClose()" aria-label="Schließen">✕</button>
+    </div>
+  </div>
+  <div id="ds-big-body"><div id="ds-big-text"></div></div>
+</div>
+
 <!-- PWA: INSTALL BANNER -->
 <div id="pwa-install-banner">
   <div class="pwa-banner-icon">📲</div>
@@ -2904,7 +2977,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.12.0';
+const APP_VERSION = '2.13.0';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -3192,6 +3265,7 @@ function applyBranding() {
   // logo
   const logoImg = document.getElementById('homeLogoImg');
   const logoText = document.getElementById('homeLogoText');
+  const logoBox = document.getElementById('homeLogo');
   if (config.schoolLogo) {
     logoImg.src = config.schoolLogo;
     logoImg.style.display = 'block';
@@ -3199,6 +3273,10 @@ function applyBranding() {
   } else {
     logoImg.style.display = 'none';
     logoText.style.display = 'block';
+  }
+  if (logoBox) {
+    logoBox.classList.toggle('has-img', !!config.schoolLogo);
+    logoBox.classList.toggle('wide', !config.schoolLogo && String(config.schoolAbbr || 'SOS').length > 4);
   }
 
   // Home header bg
@@ -3220,9 +3298,36 @@ function darkenColor(hex, pct) {
 /* ============================================================
    PHONE LIST
 ============================================================ */
+const TEL_NOTRUF = [
+  { name:'Polizei Notruf', role:'Notruf', tel:'110', icon:'🚔', locked:true },
+  { name:'Feuerwehr / Rettung', role:'Notruf', tel:'112', icon:'🚒', locked:true },
+];
+// Reihenfolge der Telefonliste. Solange nie sortiert wurde: Notrufe oben (wie bisher).
+function telOrdered() {
+  const tb = Array.isArray(config.telefonbuch) ? config.telefonbuch : [];
+  let list = config.telSorted ? tb.slice() : [...tb.filter(t => t.locked), ...tb.filter(t => !t.locked)];
+  TEL_NOTRUF.slice().reverse().forEach(n => {
+    if (!list.some(t => t.locked && t.tel === n.tel)) list.unshift({ ...n });
+  });
+  return list;
+}
+
 function renderTelefon(filter) {
   const list = document.getElementById('tel-list');
   const q = (filter || '').toLowerCase();
+  if (config.telSorted) {
+    const hit = t => !q || (t.name || '').toLowerCase().includes(q) || (t.tel || '').includes(q) || (t.role || '').toLowerCase().includes(q);
+    let h2 = '';
+    telOrdered().filter(t => t.tel && hit(t)).forEach(e => {
+      const clean = e.tel.replace(/\s/g, '');
+      h2 += `<a href="tel:${escapeAttr(clean)}" class="tel-card">
+        <div class="tel-icon"${e.locked ? ' style="background:rgba(192,57,43,0.25)"' : ''}>${escapeHtml(e.icon || '👤')}</div>
+        <div class="tel-info"><div class="tel-name">${escapeHtml(e.name || '')}</div><div class="tel-role">${escapeHtml(e.role || '')}</div></div>
+        <div class="tel-num">${escapeHtml(e.tel)}</div></a>`;
+    });
+    list.innerHTML = h2 || '<div class="log-empty"><div class="le-icon">📞</div>Keine Treffer.</div>';
+    return;
+  }
   const entries = config.telefonbuch.filter(t =>
     !q || t.name.toLowerCase().includes(q) || t.tel.includes(q) || (t.role||'').toLowerCase().includes(q)
   );
@@ -3408,6 +3513,7 @@ function populateAdminForm() {
     prev.src = config.schoolLogo;
     prev.classList.add('visible');
   }
+  updateLogoRemoveBtn();
 
   renderTelAdmin();
   renderChecklistAdmin();
@@ -3467,30 +3573,80 @@ function applyCustomColor(val) {
   applyBranding();
 }
 
+// Logo: beliebiges Seitenverhältnis; Transparenz bleibt erhalten (PNG), große Bilder werden verkleinert
 function handleLogoUpload(input) {
   const file = input.files[0];
   if (!file) return;
+  input.value = '';
+  const done = data => {
+    config.schoolLogo = data;
+    const prev = document.getElementById('logo-preview');
+    prev.src = data;
+    prev.classList.add('visible');
+    updateLogoRemoveBtn();
+    applyBranding();
+    if (typeof admUpdateSaveState === 'function') admUpdateSaveState();
+  };
   const reader = new FileReader();
   reader.onload = e => {
-    config.schoolLogo = e.target.result;
-    const prev = document.getElementById('logo-preview');
-    prev.src = e.target.result;
-    prev.classList.add('visible');
-    applyBranding();
+    const src = e.target.result;
+    if (/^data:image\/svg/.test(src) && src.length < 400000) { done(src); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        const max = 600;
+        if (w > max || h > max) { const f = max / Math.max(w, h); w = Math.round(w * f); h = Math.round(h * f); }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        done(c.toDataURL('image/png'));
+      } catch (err) { done(src); }
+    };
+    img.onerror = () => showToast('Dieses Bildformat kann der Browser nicht lesen – bitte PNG, JPG oder SVG verwenden.');
+    img.src = src;
   };
   reader.readAsDataURL(file);
 }
 
+function removeLogo() {
+  if (!confirm('Logo-Bild entfernen? Dann wird wieder das Schulkürzel angezeigt.')) return;
+  config.schoolLogo = '';
+  const prev = document.getElementById('logo-preview');
+  prev.removeAttribute('src');
+  prev.classList.remove('visible');
+  updateLogoRemoveBtn();
+  applyBranding();
+  if (typeof admUpdateSaveState === 'function') admUpdateSaveState();
+}
+
+function updateLogoRemoveBtn() {
+  const b = document.getElementById('logo-remove-btn');
+  if (b) b.style.display = config.schoolLogo ? '' : 'none';
+}
+
 function renderTelAdmin() {
   const list = document.getElementById('tel-admin-list');
-  const custom = config.telefonbuch.filter(t => !t.locked);
-  list.innerHTML = custom.map((e, i) => `
+  const all = telOrdered();
+  const n = all.length;
+  const mv = i => `<div class="tel-mv">
+      <button title="Nach oben" ${i === 0 ? 'disabled' : ''} onclick="moveTel(${i},-1)">▲</button>
+      <button title="Nach unten" ${i === n - 1 ? 'disabled' : ''} onclick="moveTel(${i},1)">▼</button></div>`;
+  list.innerHTML = all.map((e, i) => e.locked ? `
+    <div class="tel-admin-row tel-locked">
+      ${mv(i)}
+      <div class="tel-admin-inputs" style="margin-bottom:0">
+        <div style="font-size:15px;font-weight:700;padding:6px 0 2px">${escapeHtml(e.icon || '')} ${escapeHtml(e.name || '')} · ${escapeHtml(e.tel)}</div>
+        <div class="text-muted" style="font-size:12px">Notruf – immer vorhanden, nur verschiebbar</div>
+      </div>
+    </div>` : `
     <div class="tel-admin-row">
+      ${mv(i)}
       <div class="tel-admin-inputs">
-        <input type="text" placeholder="Name / Funktion" value="${e.name||''}" oninput="updateTel(${i},'name',this.value)">
-        <input type="text" placeholder="Rolle (z.B. Schulleitung)" value="${e.role||''}" oninput="updateTel(${i},'role',this.value)">
-        <input type="tel" placeholder="Telefonnummer" value="${e.tel||''}" oninput="updateTel(${i},'tel',this.value)">
-        <input type="text" placeholder="Emoji-Icon (z.B. 👤 🏫 🏥)" value="${e.icon||'👤'}" oninput="updateTel(${i},'icon',this.value)">
+        <input type="text" placeholder="Name / Funktion" value="${escapeAttr(e.name||'')}" oninput="updateTel(${i},'name',this.value)">
+        <input type="text" placeholder="Rolle (z.B. Schulleitung)" value="${escapeAttr(e.role||'')}" oninput="updateTel(${i},'role',this.value)">
+        <input type="tel" placeholder="Telefonnummer" value="${escapeAttr(e.tel||'')}" oninput="updateTel(${i},'tel',this.value)">
+        <input type="text" placeholder="Emoji-Icon (z.B. 👤 🏫 🏥)" value="${escapeAttr(e.icon||'👤')}" oninput="updateTel(${i},'icon',this.value)">
       </div>
       <button class="tel-del-btn" onclick="deleteTel(${i})">✕</button>
     </div>
@@ -3498,8 +3654,20 @@ function renderTelAdmin() {
 }
 
 function updateTel(idx, field, val) {
-  const custom = config.telefonbuch.filter(t => !t.locked);
-  custom[idx][field] = val;
+  const e = telOrdered()[idx];
+  if (e && !e.locked) e[field] = val;
+}
+
+function moveTel(idx, dir) {
+  const list = telOrdered();
+  const j = idx + dir;
+  if (j < 0 || j >= list.length) return;
+  [list[idx], list[j]] = [list[j], list[idx]];
+  config.telefonbuch = list;
+  config.telSorted = true;
+  renderTelAdmin();
+  renderTelefon();
+  if (typeof admUpdateSaveState === 'function') admUpdateSaveState();
 }
 
 function addTelEntry() {
@@ -3508,10 +3676,10 @@ function addTelEntry() {
 }
 
 function deleteTel(idx) {
-  const custom = config.telefonbuch.filter(t => !t.locked);
-  const locked = config.telefonbuch.filter(t => t.locked);
-  custom.splice(idx, 1);
-  config.telefonbuch = [...locked, ...custom];
+  const list = telOrdered();
+  if (!list[idx] || list[idx].locked) return;
+  list.splice(idx, 1);
+  config.telefonbuch = list;
   renderTelAdmin();
 }
 
@@ -3647,7 +3815,9 @@ function resetChecklist() {
 function renderKonzept() {
   const el = document.getElementById('konzept-content');
   if (config.konzept) {
-    el.innerHTML = `<div style="padding:16px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.85);white-space:pre-wrap">${config.konzept}</div>`;
+    el.innerHTML = `<div style="padding:16px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.85);white-space:pre-wrap">${escapeHtml(config.konzept)}</div>`;
+  } else if (config.img_konzept || getBlocks('konzept').length) {
+    el.innerHTML = '';
   } else {
     el.innerHTML = '<div class="text-muted text-center" style="padding:40px 0">Fügen Sie das Notfallkonzept im Admin-Bereich ein.</div>';
   }
@@ -3680,14 +3850,22 @@ const TILE_HEADER_BG = {
 
 function effectiveTile(t) {
   const o = (config.tileOverrides || {})[t.id] || {};
+  const col = TILE_COLORS.includes(o.color) ? o.color : '';
   return {
     ...t,
     title: (o.title || '').trim() || t.title,
     sub:   (o.sub   || '').trim() || t.sub,
+    icon:  (o.icon  || '').trim() || t.icon,
+    color: col || t.color,
+    fixColor: !!col,
+    showDetails: !!o.showDetails,
     url:   (o.url   || '').trim(),
     hidden: !!o.hidden,
+    deleted: !!o.deleted,
   };
 }
+
+function isTileDeleted(key) { return !!((config.tileOverrides || {})[key] || {}).deleted; }
 
 function openExternalUrl(url) {
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
@@ -3751,6 +3929,15 @@ function openCustomTile(i) {
   document.getElementById('custom-subtitle').textContent = t.sub || '';
   document.getElementById('custom-content').textContent =
     t.content || 'Noch kein Inhalt hinterlegt. Text im Admin-Bereich unter „Kacheln" eintragen.';
+  let cc = document.getElementById('custom-calls');
+  if (!cc) {
+    cc = document.createElement('div');
+    cc.id = 'custom-calls';
+    cc.className = 'call-actions';
+    document.getElementById('custom-content').closest('.content-card').after(cc);
+  }
+  cc.innerHTML = callBtnsHTML(tileCalls(t.id));
+  cc.style.display = cc.innerHTML ? '' : 'none';
   navigate('custom');
   renderScreenBlocks(t.id, document.getElementById('blocks-custom-host'));
 }
@@ -3791,7 +3978,7 @@ function renderTilesAdmin() {
   }
   // Standard-Kacheln
   const bl = document.getElementById('builtin-tiles-admin-list');
-  const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
+  const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle].filter(t => !isTileDeleted(t.id));
   bl.innerHTML = all.map(t => {
     const o = (config.tileOverrides || {})[t.id] || {};
     return `
@@ -3949,6 +4136,20 @@ function blockHTML(key, i, b) {
       </div>
     </div>`;
   }
+  if (b.type === 'pdf') {
+    const f = b.file || {};
+    if (!f.id) return '';
+    return `<div class="content-card block-tap" ${indent} onclick="openBlock('${escapeAttr(key)}',${i})">
+      <div class="content-card-body" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+        <div class="tel-icon" style="background:rgba(192,57,43,0.18)">📑</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700">${title || escapeHtml(f.name || 'PDF öffnen')}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.45)">${f.id ? 'PDF · ' + pdfSizeText(f.size) : 'Noch keine Datei hochgeladen'}</div>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.5)">PDF</div>
+      </div>
+    </div>`;
+  }
   if (b.type === 'image') {
     return `<div class="content-card" ${indent}>
       ${title ? `<div class="content-card-header">🖼️ ${title}</div>` : ''}
@@ -3974,6 +4175,109 @@ function openBlock(key, i) {
   if (!b) return;
   if (b.type === 'link' && b.url) openExternalUrl(b.url.trim());
   if (b.type === 'tel' && b.tel) location.href = 'tel:' + b.tel.replace(/[^\d+]/g, '');
+  if (b.type === 'pdf' && b.file && b.file.id) openPdfFile(b.file);
+}
+
+/* ---------- PDF-Dateien: getrennt auf dem Server, offline im Cache des Geräts ---------- */
+const PDF_MAX = 2 * 1024 * 1024;
+const PDF_CACHE = 'sos-schule-pdf';
+function pdfSizeText(n) { n = +n || 0; return n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+function pdfUrl(id) { return apiUrl('/datei/' + encodeURIComponent(id)); }
+function allPdfFiles() {
+  const out = [];
+  Object.values(config.screenBlocks || {}).forEach(l => (l || []).forEach(b => { if (b && b.type === 'pdf' && b.file && b.file.id) out.push(b.file); }));
+  return out;
+}
+async function getPdfBlob(id) {
+  const key = pdfUrl(id);
+  let cache = null;
+  try { cache = await caches.open(PDF_CACHE); const hit = await cache.match(key); if (hit) return await hit.blob(); } catch (e) {}
+  const res = await fetch(key + '?k=' + encodeURIComponent(serverAccess.k));
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const blob = await res.blob();
+  try { if (cache) await cache.put(key, new Response(blob, { headers: { 'content-type': 'application/pdf' } })); } catch (e) {}
+  return blob;
+}
+async function openPdfFile(f) {
+  if (!serverAccess) { showToast('⚠ PDFs gibt es nur über den Link Ihrer Schule'); return; }
+  // Fenster sofort öffnen (sonst blockieren Browser das Popup), dann füllen
+  let w = null;
+  try { w = window.open('', '_blank'); if (w) w.document.write('<p style="font-family:sans-serif;padding:20px">PDF wird geöffnet …</p>'); } catch (e) { w = null; }
+  try {
+    const blob = await getPdfBlob(f.id);
+    const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+    if (w && !w.closed) w.location.href = url;
+    else pdfReadyModal(url, f.name || 'Dokument');
+    setTimeout(() => URL.revokeObjectURL(url), 600000);
+  } catch (e) {
+    if (w) w.close();
+    showToast(navigator.onLine ? '⚠ PDF konnte nicht geladen werden' : '⚠ Dieses PDF ist auf dem Gerät noch nicht gespeichert – bitte einmal mit Internet öffnen');
+  }
+}
+// Falls der Browser das neue Fenster blockiert: Hinweis mit Knopf (ein Tippen öffnet die PDF sicher)
+function pdfReadyModal(url, name) {
+  let m = document.getElementById('pdf-ready');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'pdf-ready';
+    m.onclick = e => { if (e.target === m) m.remove(); };
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `<div class="pdf-ready-box"><div style="font-size:34px">📑</div>
+    <div style="font-weight:800;font-size:17px;margin:6px 0 14px">${escapeHtml(name)}</div>
+    <a class="klar-btn red" style="margin:0 0 10px" href="${url}" target="_blank" rel="noopener" onclick="setTimeout(()=>{const x=document.getElementById('pdf-ready');if(x)x.remove()},300)">PDF öffnen</a>
+    <a class="klar-btn tgray" style="margin:0 0 10px;font-size:17px;min-height:52px" href="${url}" download="${escapeAttr(name)}.pdf">Auf dem Gerät speichern</a>
+    <button class="klar-btn tgray" style="margin:0;font-size:17px;min-height:52px;background:transparent" onclick="document.getElementById('pdf-ready').remove()">Schließen</button></div>`;
+}
+
+async function prefetchPdfs() {
+  if (!serverAccess || !('caches' in window)) return;
+  const files = allPdfFiles();
+  let cache;
+  try { cache = await caches.open(PDF_CACHE); } catch (e) { return; }
+  for (const f of files) {
+    try { if (!(await cache.match(pdfUrl(f.id)))) await getPdfBlob(f.id); } catch (e) {}
+  }
+  // nicht mehr verwendete PDFs dieser Schule aus dem Gerätespeicher entfernen
+  try {
+    const keep = new Set(files.map(f => pdfUrl(f.id)));
+    const prefix = apiUrl('/datei/');
+    for (const req of await cache.keys()) if (req.url.startsWith(prefix) && !keep.has(req.url)) await cache.delete(req);
+  } catch (e) {}
+}
+
+async function blockPdfUpload(i, input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) { showToast('⚠ Bitte eine PDF-Datei wählen'); return; }
+  if (file.size > PDF_MAX) { showToast('⚠ Die PDF ist ' + pdfSizeText(file.size) + ' groß – erlaubt sind höchstens 2 MB'); return; }
+  if (!serverAccess || !adminToken) { showToast('⚠ PDFs können nur über den Link Ihrer Schule und mit angemeldetem Admin-Bereich hochgeladen werden'); return; }
+  const blocks = getBlocks(blockAdminScreen);
+  const b = blocks[i];
+  if (!b) return;
+  const key = blockAdminScreen;
+  b.uploading = true; renderBlocksAdmin();
+  try {
+    const res = await fetch(apiUrl('/datei'), {
+      method: 'PUT',
+      headers: { 'content-type': 'application/pdf', authorization: 'Bearer ' + adminToken },
+      body: file,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) { showToast('⚠ Anmeldung abgelaufen – bitte PIN erneut eingeben'); lockAdminNow(); return; }
+    if (!res.ok || !data.id) throw new Error(data.error || ('Fehler ' + res.status));
+    b.file = { id: data.id, name: file.name.replace(/\.pdf$/i, ''), size: file.size };
+    if (!(b.title || '').trim()) b.title = b.file.name;
+    try { const c = await caches.open(PDF_CACHE); await c.put(pdfUrl(data.id), new Response(file, { headers: { 'content-type': 'application/pdf' } })); } catch (e) {}
+    showToast('✓ PDF hochgeladen – bitte noch speichern');
+  } catch (e) {
+    showToast('⚠ Hochladen fehlgeschlagen: ' + e.message);
+  } finally {
+    delete b.uploading;
+    if (blockAdminScreen === key) renderBlocksAdmin();
+    if (typeof admUpdateSaveState === 'function') admUpdateSaveState();
+  }
 }
 
 /* ============================================================
@@ -4235,7 +4539,7 @@ function sectionOf(key) {
 
 function tilesInSection(sid) {
   const keys = [];
-  [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle].forEach(t => { if (sectionOf(t.id) === sid) keys.push(t.id); });
+  [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle].forEach(t => { if (!isTileDeleted(t.id) && sectionOf(t.id) === sid) keys.push(t.id); });
   (config.customTiles || []).forEach(t => { if (t.id && sectionOf(t.id) === sid) keys.push(t.id); });
   const order = (config.tileOrder || {})[sid] || [];
   keys.sort((a, b) => {
@@ -4265,7 +4569,7 @@ function tileByKey(key) {
   const bt = all.find(t => t.id === key);
   if (bt) {
     const e = effectiveTile(bt);
-    return e.hidden ? null : { ...e, click: `openTile('b','${key}')` };
+    return (e.hidden || e.deleted) ? null : { ...e, click: `openTile('b','${key}')` };
   }
   const ci = (config.customTiles || []).findIndex(t => t.id === key);
   if (ci < 0) return null;
@@ -4273,6 +4577,7 @@ function tileByKey(key) {
   return {
     icon: t.icon || '📌', title: t.title || 'Eigene Kachel', sub: t.sub || '',
     color: TILE_COLORS.includes(t.color) ? t.color : 'gray',
+    fixColor: !!t.colorFix && TILE_COLORS.includes(t.color), showDetails: !!t.showDetails,
     url: (t.url || '').trim(), click: `openTile('c',${ci})`,
   };
 }
@@ -4315,7 +4620,7 @@ function renderBlocksAdmin() {
   const list = document.getElementById('block-admin-list');
   if (!list) return;
   const blocks = getBlocks(blockAdminScreen);
-  const typeLabel = { text: '📄 Text', link: '🔗 Link', tel: '📞 Telefon', image: '🖼️ Bild', group: '📂 Kategorie' };
+  const typeLabel = { text: '📄 Text', link: '🔗 Link', tel: '📞 Telefon', image: '🖼️ Bild', pdf: '📑 PDF', group: '📂 Kategorie' };
   list.innerHTML = blocks.map((b, i) => `
     <div class="tel-admin-row" style="align-items:flex-start;margin-left:${16 * Math.min(b.level || 0, 2)}px">
       <div class="tel-admin-inputs">
@@ -4336,6 +4641,11 @@ function renderBlocksAdmin() {
         ${b.type === 'image' ? `
           ${b.img ? `<img src="${b.img}" style="max-height:60px;border-radius:6px;margin-bottom:6px;display:block">` : ''}
           <input type="file" accept="image/*" onchange="blockImgUpload(${i},this)" style="padding:6px 0;color:rgba(255,255,255,0.6);font-size:12px">` : ''}
+        ${b.type === 'pdf' ? `
+          ${b.uploading ? '<p class="text-muted" style="font-size:13px;margin:4px 0">⏳ PDF wird hochgeladen …</p>'
+            : b.file && b.file.id ? `<p style="font-size:13px;margin:4px 0">📑 <strong>${escapeHtml(b.file.name || 'PDF')}</strong> · ${pdfSizeText(b.file.size)}</p>`
+            : '<p class="text-muted" style="font-size:13px;margin:4px 0">Noch keine Datei – PDF bis 2 MB auswählen:</p>'}
+          <label class="btn-secondary adm-imgbtn">📑 ${b.file && b.file.id ? 'PDF ersetzen' : 'PDF auswählen'}<input type="file" accept="application/pdf,.pdf" style="display:none" onchange="blockPdfUpload(${i},this)"></label>` : ''}
       </div>
     </div>
   `).join('') || '<p class="text-muted" style="margin-bottom:10px">Noch keine Bausteine für diesen Bereich.</p>';
@@ -4349,6 +4659,7 @@ function addBlock(type) {
   if (type === 'link') b.url = '';
   if (type === 'tel') b.tel = '';
   if (type === 'image') b.img = '';
+  if (type === 'pdf') b.file = null;
   config.screenBlocks[blockAdminScreen].push(b);
   renderBlocksAdmin();
 }
@@ -4445,24 +4756,33 @@ function renderSuizid() {
   el.innerHTML = rows.join('') || '<p class="text-muted">Krisencontakte im Admin-Bereich konfigurieren.</p>';
 }
 
+const LOC_LABELS = { defi: 'Defibrillator', saniRoom: 'Sanitätsraum', sammelplatz: 'Sammelplatz', brandmel: 'Brandmeldetableau', address: 'Schuladresse' };
+function locHidden(screen) { return ((config.locHide || {})[screen]) || []; }
+
 function renderStandorte() {
   const rows = [
-    { icon: '♥', bg: '#27AE60', label: 'Defibrillator',        val: config.defi },
-    { icon: '+', bg: '#2980B9', label: 'Sanitätsraum',         val: config.saniRoom },
-    { icon: '📍', bg: '#E67E22', label: 'Sammelplatz',          val: config.sammelplatz },
-    { icon: '🚒', bg: '#C0392B', label: 'Brandmeldetableau',    val: config.brandmel },
+    { id: 'defi',        icon: '♥', bg: '#27AE60', label: 'Defibrillator',        val: config.defi },
+    { id: 'saniRoom',    icon: '+', bg: '#2980B9', label: 'Sanitätsraum',         val: config.saniRoom },
+    { id: 'sammelplatz', icon: '📍', bg: '#E67E22', label: 'Sammelplatz',          val: config.sammelplatz },
+    { id: 'brandmel',    icon: '🚒', bg: '#C0392B', label: 'Brandmeldetableau',    val: config.brandmel },
   ];
-  const html = rows.map(r => `
+  const rowHTML = r => `
     <div class="sofort-step">
       <div class="step-num" style="background:${r.bg};font-size:14px">${r.icon}</div>
       <div class="step-txt"><strong>${escapeHtml(r.label)}</strong> – ${escapeHtml((r.val || '').trim() || 'nicht konfiguriert')}</div>
-    </div>`).join('');
+    </div>`;
+  const html = rows.map(rowHTML).join('');
 
-  const el = document.getElementById('standorte-content');
-  if (el) el.innerHTML = html;
-
-  const sa = document.getElementById('sani-standorte');
-  if (sa) sa.innerHTML = html;
+  // In Unfall/SaniAlarm nur die Standorte, die für diese Seite nicht entfernt wurden
+  ['standorte-content', 'sani-standorte'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const hide = locHidden(el.dataset.screen);
+    const vis = rows.filter(r => !hide.includes(r.id));
+    el.innerHTML = vis.map(rowHTML).join('');
+    const card = el.closest('.content-card');
+    if (card) card.style.display = vis.length ? '' : 'none';
+  });
 
   const ss = document.getElementById('standorte-screen-list');
   if (ss) ss.innerHTML = html;
@@ -4476,10 +4796,27 @@ function renderStandorte() {
    IMAGE UPLOADS
 ============================================================ */
 function triggerImgUpload(type) {
+  const v = config['img_' + type];
+  if (v && /^data:application\/pdf/.test(v)) { openPdfData(v, type); return; }
   // Ist schon ein Bild da, wird es vergrößert angezeigt statt eine Datei abzufragen.
-  if (config['img_' + type]) { openImageViewer(config['img_' + type], type); return; }
+  if (v) { openImageViewer(v, type); return; }
   const input = document.querySelector(`#${type}-img-area input`);
   if (input) input.click();
+}
+
+function openPdfBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
+  if (!w) { const a = document.createElement('a'); a.href = url; a.download = name || 'Dokument.pdf'; document.body.appendChild(a); a.click(); a.remove(); }
+  setTimeout(() => URL.revokeObjectURL(url), 120000);
+}
+function openPdfData(dataUrl, name) {
+  try {
+    const bin = atob(dataUrl.split(',')[1]);
+    const u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    openPdfBlob(new Blob([u8], { type: 'application/pdf' }), (name || 'Dokument') + '.pdf');
+  } catch (e) { showToast('⚠ PDF konnte nicht geöffnet werden'); }
 }
 
 function markImgArea(type, has) {
@@ -4515,6 +4852,17 @@ function applyUploadedImg(type, dataUrl) {
 function restoreImages() {
   ['flucht','notausgang','rettung','konzept','leitfaden'].forEach(type => {
     const stored = config['img_' + type];
+    const area = document.getElementById(type + '-img-area');
+    const isPdf = !!stored && /^data:application\/pdf/.test(stored);
+    if (area) area.classList.toggle('has-pdf', isPdf);
+    if (isPdf) {
+      const img = document.getElementById(type + '-img');
+      const emptyText = document.getElementById(type + '-empty-text');
+      if (img) { img.removeAttribute('src'); img.style.display = 'none'; }
+      if (emptyText) { emptyText.style.display = ''; emptyText.innerHTML = '<div class="iu-icon">📄</div><div><strong>PDF öffnen</strong></div>'; }
+      markImgArea(type, false);
+      return;
+    }
     if (stored) {
       const img = document.getElementById(type + '-img');
       const emptyText = document.getElementById(type + '-empty-text');
@@ -4658,11 +5006,31 @@ function panicGo(screen) {
 /* ============================================================
    DURCHSAGEN
 ============================================================ */
+const DS_COLORS = {
+  gray:   { name: '⚪ Grau (Standard)', bg: '#3A3A37', fg: '#FFFFFF', klar: 'tgray', card: 'gray' },
+  red:    { name: '🔴 Rot',             bg: '#C0392B', fg: '#FFFFFF', klar: 'red', card: 'red' },
+  orange: { name: '🟠 Orange',          bg: '#F0A92B', fg: '#3A2403', klar: 'amber', card: 'orange' },
+  green:  { name: '🟢 Grün',            bg: '#3B6D11', fg: '#FFFFFF', klar: 'tgreen', card: 'green' },
+  blue:   { name: '🔵 Blau',            bg: '#2471A3', fg: '#FFFFFF', klar: 'blue', card: 'blue' },
+};
+function dsColor(a) { return DS_COLORS[(a && a.color) || 'gray'] || DS_COLORS.gray; }
+
+let dsCurrent = -1;
+let dsWakeLock = null;
+let dsSize = 0;
+
 function renderDurchsagen() {
   const list = document.getElementById('durchsagen-list');
   const items = config.announcements || [];
+  if (isKlar()) {
+    list.innerHTML = '<div style="padding:0 16px">' + items.map((a, i) =>
+      `<button class="klar-btn kb-det ${dsColor(a).klar}" onclick="showDurchsage(${i})"><span class="kb-icon">📢</span><span class="kb-txt">${escapeHtml(a.title || 'Ohne Titel')}</span></button>`
+    ).join('') + '</div>' || '';
+    if (!items.length) list.innerHTML = '<div class="log-empty"><div class="le-icon">📢</div>Keine Durchsagen konfiguriert.<br>Im Admin-Bereich anlegen.</div>';
+    return;
+  }
   list.innerHTML = items.map((a, i) => `
-    <div class="emergency-card gray" style="min-height:auto;margin:0 16px 12px;width:calc(100% - 32px)" onclick="showDurchsage(${i})">
+    <div class="emergency-card ${dsColor(a).card}" style="min-height:auto;margin:0 16px 12px;width:calc(100% - 32px)" onclick="showDurchsage(${i})">
       <div style="display:flex;gap:12px;align-items:center;width:100%">
         <div class="card-icon" style="font-size:26px">📢</div>
         <div style="flex:1;min-width:0">
@@ -4677,21 +5045,80 @@ function renderDurchsagen() {
 function showDurchsage(i) {
   const a = (config.announcements || [])[i];
   if (!a) return;
-  document.getElementById('durchsage-view-title').textContent = '📢 ' + (a.title || 'Durchsage');
+  dsCurrent = i;
+  document.getElementById('durchsage-view-title').textContent = (isKlar() ? '' : '📢 ') + (a.title || 'Durchsage');
   document.getElementById('durchsage-view-text').textContent = a.text || '';
+  const c = dsColor(a);
+  const hd = document.querySelector('#screen-durchsage-view .header');
+  if (hd) hd.style.background = a.color && a.color !== 'gray' ? c.bg : '';
   navigate('durchsage-view');
+}
+
+async function dsBigOpen() {
+  const a = (config.announcements || [])[dsCurrent];
+  if (!a) return;
+  const ov = document.getElementById('ds-big');
+  const c = dsColor(a);
+  ov.style.background = c.bg;
+  ov.style.color = c.fg;
+  document.getElementById('ds-big-title').textContent = a.title || 'Durchsage';
+  document.getElementById('ds-big-text').textContent = a.text || '';
+  ov.classList.add('open');
+  dsSize = 0;
+  dsFit();
+  try { if (ov.requestFullscreen) await ov.requestFullscreen(); } catch (e) {}
+  try { if ('wakeLock' in navigator) dsWakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+
+function dsFit() {
+  const t = document.getElementById('ds-big-text');
+  const box = document.getElementById('ds-big-body');
+  let size = 64;
+  t.style.fontSize = size + 'px';
+  while (size > 22 && box.scrollHeight > box.clientHeight) { size -= 2; t.style.fontSize = size + 'px'; }
+  t.style.fontSize = Math.max(18, size + dsSize) + 'px';
+}
+
+function dsZoom(d) { dsSize += d; dsFit(); }
+
+function dsBigClose() {
+  document.getElementById('ds-big').classList.remove('open');
+  try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+  try { if (dsWakeLock) dsWakeLock.release(); } catch (e) {}
+  dsWakeLock = null;
+}
+
+function moveDurchsage(i, d) {
+  const l = config.announcements || [];
+  const j = i + d;
+  if (j < 0 || j >= l.length) return;
+  [l[i], l[j]] = [l[j], l[i]];
+  renderDurchsagenAdmin();
+  if (typeof admUpdateSaveState === 'function') admUpdateSaveState();
+}
+function deleteDurchsage(i) {
+  const a = (config.announcements || [])[i];
+  if (!a || !confirm('Durchsage „' + (a.title || 'ohne Titel') + '“ löschen?')) return;
+  config.announcements.splice(i, 1);
+  renderDurchsagenAdmin();
 }
 
 function renderDurchsagenAdmin() {
   const list = document.getElementById('durchsagen-admin-list');
   if (!list) return;
+  const n = (config.announcements || []).length;
+  const sel = 'width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:8px 10px;color:var(--white);font-size:13px;font-family:var(--font-main);margin-bottom:6px';
   list.innerHTML = (config.announcements || []).map((a, i) => `
     <div class="tel-admin-row">
+      <div class="tel-mv">
+        <button title="Nach oben" ${i === 0 ? 'disabled' : ''} onclick="moveDurchsage(${i},-1)">▲</button>
+        <button title="Nach unten" ${i === n - 1 ? 'disabled' : ''} onclick="moveDurchsage(${i},1)">▼</button></div>
       <div class="tel-admin-inputs">
         <input type="text" placeholder="Titel (z.B. Evakuierung)" value="${escapeAttr(a.title || '')}" oninput="config.announcements[${i}].title=this.value">
+        <select style="${sel}" onchange="config.announcements[${i}].color=this.value">${Object.entries(DS_COLORS).map(([k, c]) => `<option value="${k}" ${(a.color || 'gray') === k ? 'selected' : ''}>${c.name}</option>`).join('')}</select>
         <textarea placeholder="Durchsagetext" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:8px 10px;color:var(--white);font-size:13px;font-family:var(--font-main);min-height:70px;resize:vertical" oninput="config.announcements[${i}].text=this.value">${escapeHtml(a.text || '')}</textarea>
       </div>
-      <button class="tel-del-btn" onclick="config.announcements.splice(${i},1);renderDurchsagenAdmin()">✕</button>
+      <button class="tel-del-btn" onclick="deleteDurchsage(${i})">✕</button>
     </div>`).join('');
 }
 
@@ -4841,7 +5268,7 @@ function wizardFinish() {
 
   if (name) config.schoolName = name;
   if (sub)  config.schoolSub = sub;
-  if (abbr) config.schoolAbbr = abbr.toUpperCase();
+  if (abbr) config.schoolAbbr = abbr;
   if (addr) config.schoolAddress = addr;
   const sel = document.querySelector('.wizard-color.selected');
   if (sel) config.schoolColor = sel.dataset.color;
@@ -5251,14 +5678,19 @@ function previewDesign(v) {
   updatePublishBanner();
 }
 
+const KLAR_FIX = { red: 'red', orange: 'amber', green: 'tgreen', blue: 'blue', purple: 'purple', gray: 'tgray' };
 function klarColor(t, first) {
+  if (t.fixColor && KLAR_FIX[t.color]) return KLAR_FIX[t.color];
   if (t.badge && !first) return 'red';
   if (first) return (t.color === 'red' || t.color === 'orange') ? 'red' : 'amber';
   return 'amber';
 }
 
 function klarBtn(t, color) {
-  return `<button class="klar-btn ${color}" onclick="${t.click}">${escapeHtml(stripEmoji(t.title))}</button>`;
+  if (!t.showDetails) return `<button class="klar-btn ${color}" onclick="${t.click}">${escapeHtml(stripEmoji(t.title))}</button>`;
+  const icon = t.icon ? `<span class="kb-icon">${escapeHtml(t.icon)}</span>` : '';
+  const sub = (t.sub || '').trim() ? `<small class="kb-sub">${escapeHtml(t.sub)}</small>` : '';
+  return `<button class="klar-btn kb-det ${color}" onclick="${t.click}">${icon}<span class="kb-txt">${escapeHtml(stripEmoji(t.title))}${sub}</span></button>`;
 }
 
 function renderHomeKlar(host) {
@@ -5295,18 +5727,57 @@ function renderWeitereKlar() {
   host.innerHTML = h;
 }
 
+// Anruf-Buttons einer Kachel: eigene Einstellung oder Vorgabe (110/112)
+function tileCalls(id) {
+  const ct = (config.customTiles || []).find(t => t.id === id);
+  const own = ct ? ct.calls : ((config.tileOverrides || {})[id] || {}).calls;
+  if (Array.isArray(own)) return own.filter(c => c && String(c.tel || '').trim());
+  const n = KLAR_NOTRUF[id];
+  return n ? [{ tel: n[0], label: n[1] }] : [];
+}
+function callBtnsHTML(calls) {
+  return calls.map(c => {
+    const tel = String(c.tel).trim();
+    const clean = tel.replace(/[^\d+]/g, '');
+    const notruf = clean === '110' || clean === '112';
+    const label = (c.label || '').trim() || (tel + ' anrufen');
+    return `<a class="klar-btn ${notruf ? 'red' : 'tgreen'}" href="tel:${escapeAttr(clean)}">☎ ${escapeHtml(label)}</a>`;
+  }).join('');
+}
+
 function applyKlarScreen(id) {
   const scr = document.getElementById('screen-' + id);
   if (!scr || id === 'admin') return;
   scr.classList.remove('klar-collapsed');
   scr.querySelectorAll('.klar-actions').forEach(e => e.remove());
   const cont = document.getElementById('content-' + id);
-  if (!isKlar() || !cont || !cont.querySelector('.sofort-box')) return;
+  if (!cont || !cont.querySelector('.sofort-box')) return;
+  const ov = (config.tileOverrides || {})[id] || {};
+  const calls = tileCalls(id);
+  if (!isKlar()) {
+    // Design „Modern“: Buttons nur, wenn die Schule sie selbst festgelegt hat
+    if (Array.isArray(ov.calls) && calls.length) {
+      const m = document.createElement('div');
+      m.className = 'klar-actions';
+      m.innerHTML = callBtnsHTML(calls);
+      cont.querySelector('.sofort-box').after(m);
+    }
+    return;
+  }
+  if (ov.expand === 'open') {
+    if (calls.length) {
+      const a0 = document.createElement('div');
+      a0.className = 'klar-actions klar-keep';
+      a0.innerHTML = callBtnsHTML(calls);
+      a0.style.paddingTop = '0';
+      cont.querySelector('.sofort-box').after(a0);
+    }
+    return;
+  }
   scr.classList.add('klar-collapsed');
   const a = document.createElement('div');
   a.className = 'klar-actions klar-keep';
-  const n = KLAR_NOTRUF[id];
-  a.innerHTML = (n ? `<a class="klar-btn red" href="tel:${n[0]}">☎ ${n[1]}</a>` : '')
+  a.innerHTML = callBtnsHTML(calls)
     + `<button class="klar-btn gray" onclick="klarMehr(this)">Weitere Informationen ▾</button>`;
   cont.after(a);
 }
@@ -5386,6 +5857,7 @@ async function copyShareLink() {
 
 // Nur die Inhalte, die veröffentlicht werden (ohne Gerätedaten und PIN)
 function publishableConfig() {
+  Object.values(config.screenBlocks || {}).forEach(l => (l || []).forEach(b => { if (b) delete b.uploading; }));
   const c = { ...config };
   ['log', 'attendance', 'pin', 'updatedAt', 'exportedAt', 'appVersion', 'schoolId'].forEach(k => delete c[k]);
   return c;
@@ -5409,7 +5881,7 @@ async function loadServerConfig(quiet) {
     const m = loadMeta();
     // Server-Stand unverändert → lokalen Stand behalten (auch noch nicht veröffentlichte Änderungen)
     // … aber nur, wenn auf diesem Gerät überhaupt eigene Daten gespeichert sind
-    if (remote.updatedAt && m.serverUpdatedAt === remote.updatedAt && hasLocalConfig()) return true;
+    if (remote.updatedAt && m.serverUpdatedAt === remote.updatedAt && hasLocalConfig()) { setTimeout(prefetchPdfs, 1500); return true; }
     // Server hat eine neuere Fassung: lokale, unveröffentlichte Änderungen vorher sichern
     if (hasUnpublishedChanges()) {
       saveLocalBackup();
@@ -5422,6 +5894,7 @@ async function loadServerConfig(quiet) {
     saveMeta({ serverUpdatedAt: remote.updatedAt || null, publishedHash: configHash(), lastSavedAt: Date.now(), lastExportedAt: Date.now() });
     applyBranding();
     if (!quiet) showToast('✓ Aktueller Stand geladen: ' + (config.schoolName || ''));
+    setTimeout(prefetchPdfs, 1500);
     return true;
   } catch (e) {
     if (!quiet) showToast('⚠ Offline – zuletzt gespeicherter Stand wird angezeigt');
@@ -5724,7 +6197,7 @@ function admReopen() {
 function admTileInfo(key) {
   const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
   const bt = all.find(t => t.id === key);
-  if (bt) { const e = effectiveTile(bt); return { icon: e.icon, title: e.title, hidden: e.hidden, url: e.url, custom: false }; }
+  if (bt) { const e = effectiveTile(bt); if (e.deleted) return null; return { icon: e.icon, title: e.title, hidden: e.hidden, url: e.url, custom: false }; }
   const t = (config.customTiles || []).find(x => x.id === key);
   if (!t) return null;
   return { icon: t.icon || '📌', title: t.title || 'Eigene Kachel', hidden: false, url: (t.url || '').trim(), custom: true };
@@ -5752,8 +6225,8 @@ function admColor(key, first) {
   const all = [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle];
   const bt = all.find(t => t.id === key);
   const ct = (config.customTiles || []).find(t => t.id === key);
-  const t = bt ? effectiveTile(bt) : { color: ct && TILE_COLORS.includes(ct.color) ? ct.color : 'gray' };
-  if (isKlar()) return klarColor(t, first);
+  const t = bt ? effectiveTile(bt) : { color: ct && TILE_COLORS.includes(ct.color) ? ct.color : 'gray', fixColor: !!(ct && ct.colorFix) };
+  if (isKlar()) return ({ tgreen: 'green', tgray: 'gray' })[klarColor(t, first)] || klarColor(t, first);
   return { red: 'red', orange: 'amber', blue: 'blue', green: 'green', purple: 'purple', gray: 'gray' }[t.color] || 'gray';
 }
 
@@ -5811,6 +6284,9 @@ function admRender() {
       <span class="adm-chip">${done} von ${keys.length} angepasst</span></button>`;
   }
 
+  const nDel = deletedBuiltinTiles().length;
+  if (nDel) h += `<button class="adm-set" onclick="admOpenDeleted()"><span>♻ Gelöschte Vorlagen-Kacheln (${nDel})</span><span>›</span></button>`;
+
   h += '<div class="adm-lbl">Informationen</div>';
   const nTel = (config.telefonbuch || []).filter(t => !t.locked).length;
   h += `<button class="adm-tile green" onclick="admOpenTel()"><span>☎ Telefonnummern<small>${nTel} ${nTel === 1 ? 'eigener Eintrag' : 'eigene Einträge'} (110 und 112 sind immer dabei)</small></span>
@@ -5846,7 +6322,7 @@ function admImgSection(imgs) {
         ${src ? `<button class="btn-secondary adm-imgbtn" onclick="admImgRemove('${type}')">🗑 Entfernen</button>` : ''}
       </div></div>`;
   }).join('');
-  return admSectionHTML('🖼️ Pläne &amp; Bilder', rows + '<p class="text-muted" style="font-size:12px;margin:0">Ein gut lesbares Handyfoto reicht. Große Bilder werden automatisch verkleinert.</p>');
+  return admSectionHTML('🖼️ Pläne &amp; Bilder', rows + '<p class="text-muted" style="font-size:12px;margin:0">Ein gut lesbares Handyfoto reicht. Große Bilder werden automatisch verkleinert. <strong>Plan als PDF?</strong> Unten bei „Eigene Inhalte der Schule“ auf „＋ 📑 PDF“ tippen.</p>');
 }
 
 function admImgUpload(type, input) {
@@ -5896,22 +6372,161 @@ function admTileSettings(key) {
         <button class="btn-secondary adm-imgbtn" onclick="moveTile('${escapeAttr(key)}',-1);renderHomeTiles();admUpdateSaveState()">↑ weiter nach oben</button>
         <button class="btn-secondary adm-imgbtn" onclick="moveTile('${escapeAttr(key)}',1);renderHomeTiles();admUpdateSaveState()">↓ weiter nach unten</button>
       </div></div>`;
+  const curColor = isCustom ? (o.colorFix ? o.color : '') : (o.color || '');
+  h += `
+    <div class="admin-field"><label>SYMBOL (Emoji)</label>
+      <input type="text" value="${escapeAttr(o.icon || '')}" placeholder="${escapeAttr(bt ? bt.icon : '📌')}" oninput="${set('icon')};renderHomeTiles()"></div>
+    <div class="admin-field"><label>FARBE DER KACHEL</label>
+      <select style="${sel}" onchange="admSetTileColor('${escapeAttr(key)}',this.value)">
+        <option value="" ${curColor ? '' : 'selected'}>Automatisch (wie bisher)</option>
+        ${TILE_COLORS.map(c => `<option value="${c}" ${curColor === c ? 'selected' : ''}>${colorNames[c]}</option>`).join('')}</select></div>
+    <label style="display:flex;align-items:center;gap:10px;font-size:14px;padding:4px 0 12px;cursor:pointer">
+      <input type="checkbox" ${o.showDetails ? 'checked' : ''} onchange="admSetTileFlag('${escapeAttr(key)}','showDetails',this.checked)" style="width:auto;margin:0">
+      Symbol und Untertitel auf der Kachel anzeigen (Design „Klar“)</label>`;
+  h += admCallsHTML(key);
   if (isCustom) {
     h += `
-    <div class="admin-field"><label>SYMBOL (Emoji, nur im Design „Modern“)</label>
-      <input type="text" value="${escapeAttr(o.icon || '')}" placeholder="📌" oninput="config.customTiles[${ci}].icon=this.value"></div>
-    <div class="admin-field"><label>FARBE</label>
-      <select style="${sel}" onchange="config.customTiles[${ci}].color=this.value;renderHomeTiles()">${TILE_COLORS.map(c => `<option value="${c}" ${o.color === c ? 'selected' : ''}>${colorNames[c]}</option>`).join('')}</select></div>
     <div class="admin-field"><label>TEXT DER KACHEL</label>
       <textarea style="${ta}" placeholder="Anweisungen, Infos …" oninput="config.customTiles[${ci}].content=this.value">${escapeHtml(o.content || '')}</textarea></div>
     <button class="btn-secondary" style="border-color:rgba(231,76,60,0.6);color:#FF8A80" onclick="admDeleteTile(${ci})">🗑 Diese Kachel löschen</button>`;
   } else {
     h += `
-    <label style="display:flex;align-items:center;gap:10px;font-size:14px;padding:4px 0;cursor:pointer">
+    <div class="admin-field"><label>„WEITERE INFORMATIONEN“ (Design „Klar“)</label>
+      <select style="${sel}" onchange="setTileOverride('${key}','expand',this.value)">
+        <option value="" ${o.expand === 'open' ? '' : 'selected'}>Eingeklappt – erst Sofortmaßnahmen, Rest per Button</option>
+        <option value="open" ${o.expand === 'open' ? 'selected' : ''}>Immer offen – alles sofort sichtbar</option></select></div>
+    <label style="display:flex;align-items:center;gap:10px;font-size:14px;padding:4px 0 14px;cursor:pointer">
       <input type="checkbox" ${o.hidden ? 'checked' : ''} onchange="setTileOverride('${key}','hidden',this.checked);renderHomeTiles()" style="width:auto;margin:0">
-      Kachel auf der Startseite ausblenden</label>`;
+      Kachel vorübergehend ausblenden (bleibt in dieser Übersicht)</label>
+    <button class="btn-secondary" style="border-color:rgba(231,76,60,0.6);color:#FF8A80" onclick="admDeleteBuiltin('${escapeAttr(key)}')">🗑 Diese Kachel löschen</button>`;
   }
-  return admSectionHTML('⚙️ Kachel: Name, Link &amp; Platz', h);
+  return admSectionHTML('⚙️ Kachel: Name, Aussehen &amp; Platz', h);
+}
+
+/* ---------- Anruf-Buttons (z. B. „112 anrufen“) ---------- */
+function admCallsOwn(key) {
+  const ct = (config.customTiles || []).find(t => t.id === key);
+  return ct ? ct.calls : ((config.tileOverrides || {})[key] || {}).calls;
+}
+function admCallsGet(key) {
+  const own = admCallsOwn(key);
+  if (Array.isArray(own)) return own;
+  const n = KLAR_NOTRUF[key];
+  return n ? [{ tel: n[0], label: n[1] }] : [];
+}
+function admCallsSet(key, list, rerender) {
+  const ct = (config.customTiles || []).find(t => t.id === key);
+  if (ct) ct.calls = list; else setTileOverride(key, 'calls', list);
+  if (rerender) admReopen();
+  admUpdateSaveState();
+}
+function admCallsEdit(key) {
+  // Beim ersten Bearbeiten wird die Vorgabe als eigene Liste übernommen
+  const l = admCallsGet(key).map(c => ({ tel: c.tel || '', label: c.label || '' }));
+  if (!Array.isArray(admCallsOwn(key))) admCallsSet(key, l);
+  return admCallsOwn(key);
+}
+function admCallUpd(key, i, f, v) { const l = admCallsEdit(key); if (l[i]) l[i][f] = v; admUpdateSaveState(); }
+function admCallAdd(key, sel) {
+  const l = admCallsEdit(key);
+  let e = { tel: '', label: '' };
+  if (sel !== undefined && sel !== '') {
+    const t = telOrdered()[+sel];
+    if (t) e = { tel: t.tel || '', label: (t.name || t.tel) + ' anrufen' };
+  }
+  l.push(e);
+  admCallsSet(key, l, true);
+}
+function admCallDel(key, i) { const l = admCallsEdit(key); l.splice(i, 1); admCallsSet(key, l, true); }
+function admCallMove(key, i, d) {
+  const l = admCallsEdit(key); const j = i + d;
+  if (j < 0 || j >= l.length) return;
+  [l[i], l[j]] = [l[j], l[i]];
+  admCallsSet(key, l, true);
+}
+function admCallsReset(key) {
+  const ct = (config.customTiles || []).find(t => t.id === key);
+  if (ct) delete ct.calls; else if ((config.tileOverrides || {})[key]) delete config.tileOverrides[key].calls;
+  admReopen(); admUpdateSaveState();
+}
+function admCallsHTML(key) {
+  const k = escapeAttr(key);
+  const l = admCallsGet(key);
+  const own = Array.isArray(admCallsOwn(key));
+  const tels = telOrdered().map((t, i) => [i, t]).filter(([, t]) => (t.tel || '').trim());
+  let h = `<div class="admin-field adm-calls"><label>ANRUF-BUTTONS AUF DER SEITE</label>`;
+  h += l.map((c, i) => `
+    <div class="adm-call-row">
+      <div class="tel-mv"><button ${i === 0 ? 'disabled' : ''} onclick="admCallMove('${k}',${i},-1)">▲</button><button ${i === l.length - 1 ? 'disabled' : ''} onclick="admCallMove('${k}',${i},1)">▼</button></div>
+      <div style="flex:1;min-width:0">
+        <input type="text" placeholder="Beschriftung, z. B. 112 anrufen" value="${escapeAttr(c.label || '')}" oninput="admCallUpd('${k}',${i},'label',this.value)">
+        <input type="tel" placeholder="Telefonnummer" value="${escapeAttr(c.tel || '')}" oninput="admCallUpd('${k}',${i},'tel',this.value)">
+      </div>
+      <button class="tel-del-btn" title="Button entfernen" onclick="admCallDel('${k}',${i})">✕</button>
+    </div>`).join('') || '<p class="text-muted" style="font-size:13px;margin:4px 0 8px">Kein Anruf-Button auf dieser Seite.</p>';
+  h += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+      <button class="btn-secondary adm-imgbtn" onclick="admCallAdd('${k}')">＋ Nummer eintragen</button>
+      ${tels.length ? `<select class="adm-call-sel" onchange="if(this.value!=='')admCallAdd('${k}',this.value)">
+        <option value="">＋ aus Telefonliste …</option>
+        ${tels.map(([i, t]) => `<option value="${i}">${escapeHtml((t.name || '') + ' · ' + t.tel)}</option>`).join('')}</select>` : ''}
+      ${own && (KLAR_NOTRUF[key] || l.length) ? `<button class="btn-secondary adm-imgbtn" onclick="admCallsReset('${k}')">↺ Vorgabe</button>` : ''}
+    </div>
+    <p class="text-muted" style="font-size:12px;margin:8px 0 0">Große Buttons direkt unter den Sofortmaßnahmen. 110 und 112 erscheinen rot, andere Nummern grün.</p></div>`;
+  return h;
+}
+
+function admSetTileColor(key, v) {
+  const ct = (config.customTiles || []).find(t => t.id === key);
+  if (ct) { ct.colorFix = !!v; if (v) ct.color = v; }
+  else setTileOverride(key, 'color', v);
+  renderHomeTiles();
+  admUpdateSaveState();
+}
+
+function admSetTileFlag(key, f, v) {
+  const ct = (config.customTiles || []).find(t => t.id === key);
+  if (ct) ct[f] = v; else setTileOverride(key, f, v);
+  renderHomeTiles();
+  admUpdateSaveState();
+}
+
+function admDeleteBuiltin(key) {
+  const info = admTileInfo(key);
+  if (!info) return;
+  if (!confirm('Kachel „' + stripEmoji(info.title) + '“ löschen?\n\nSie verschwindet aus der App und aus dieser Übersicht. Ihre Texte bleiben gespeichert – unter „Gelöschte Vorlagen-Kacheln“ können Sie die Kachel jederzeit wiederherstellen.')) return;
+  setTileOverride(key, 'deleted', true);
+  renderHomeTiles();
+  admShowHome();
+  showToast('Kachel gelöscht – bitte noch speichern');
+}
+
+function deletedBuiltinTiles() {
+  return [...BUILTIN_TILES.notfaelle, ...BUILTIN_TILES.vorfaelle].filter(t => isTileDeleted(t.id)).map(effectiveTile);
+}
+
+function admRestoreTile(key) {
+  setTileOverride(key, 'deleted', false);
+  renderHomeTiles();
+  renderTilesAdmin();
+  showToast('Kachel wiederhergestellt – bitte noch speichern');
+  if (deletedBuiltinTiles().length) admReopen(); else admShowHome();
+}
+
+function admDeletedHTML() {
+  const del = deletedBuiltinTiles();
+  if (!del.length) return '';
+  return admSectionHTML('♻ Gelöschte Vorlagen-Kacheln', del.map(t => `
+    <div class="adm-imgrow" style="justify-content:space-between">
+      <strong style="font-size:15px">${escapeHtml(stripEmoji(t.title))}</strong>
+      <button class="btn-secondary adm-imgbtn" style="margin:0 !important" onclick="admRestoreTile('${escapeAttr(t.id)}')">♻ Wiederherstellen</button>
+    </div>`).join(''));
+}
+
+function admOpenDeleted() {
+  admOpen('♻ Gelöschte Kacheln', [
+    { html: '<p class="adm-hint">Diese Vorlagen-Kacheln haben Sie gelöscht. Beim Wiederherstellen erscheinen sie mit Ihren bisherigen Texten wieder.</p>' },
+    { html: admDeletedHTML() },
+  ], { reopen: () => admOpenDeleted() });
 }
 
 function admAddTile(sid, from) {
@@ -5952,17 +6567,53 @@ function admOpenTile(key, from, keepScroll) {
   }
   const ex = ADM_EXTRA[key] || {};
   (ex.parts || []).forEach(p => items.push({ part: p, title: ADM_PART_TITLES[p] }));
+  admLocSetup((ex.parts || []).includes('standorte') ? key : null);
   if (ex.imgs) items.push({ html: admImgSection(ex.imgs) });
   blockAdminScreen = key;
   renderBlocksAdmin();
   items.push({ part: 'bausteine', title: '🧱 Eigene Inhalte der Schule' });
-  items.push({ html: '<p class="adm-hint">Zusätzliche Texte, Links, Telefonnummern oder Bilder Ihrer Schule – sie erscheinen unter den Texten der App. Mit ◀ ▶ einrücken, mit ↑ ↓ sortieren.</p>' });
+  items.push({ html: '<p class="adm-hint">Zusätzliche Texte, Links, Telefonnummern, Bilder oder PDFs (bis 2 MB) Ihrer Schule – sie erscheinen unter den Texten der App. Mit ◀ ▶ einrücken, mit ↑ ↓ sortieren.</p>' });
   admOpen(title, items, {
     tilemode: true, keepScroll,
     backLabel: from === 'weitere' ? '‹ Weitere Vorfälle' : '‹ Übersicht',
     back: from === 'weitere' ? admOpenWeitere : null,
     reopen: ks => admOpenTile(key, from, ks),
   });
+}
+
+function admLocSetup(key) {
+  const part = admPart('standorte');
+  if (!part) return;
+  const hide = key ? locHidden(key) : [];
+  part.querySelectorAll('[data-loc]').forEach(f => {
+    const loc = f.dataset.loc;
+    f.style.display = hide.includes(loc) ? 'none' : '';
+    let x = f.querySelector('.loc-del');
+    if (key) {
+      if (!x) { x = document.createElement('button'); x.className = 'loc-del'; x.type = 'button'; x.textContent = '✕'; f.appendChild(x); }
+      x.title = LOC_LABELS[loc] + ' auf dieser Seite entfernen';
+      x.onclick = () => admLocToggle(key, loc, true);
+    } else if (x) x.remove();
+  });
+  let r = part.querySelector('.loc-restore');
+  if (r) r.remove();
+  if (key && hide.length) {
+    r = document.createElement('div');
+    r.className = 'loc-restore';
+    r.innerHTML = '<span>Entfernt:</span>' + hide.map(l => `<button type="button" class="btn-secondary adm-imgbtn" onclick="admLocToggle('${escapeAttr(key)}','${l}',false)">＋ ${escapeHtml(LOC_LABELS[l] || l)}</button>`).join('');
+    part.querySelector('.admin-section').appendChild(r);
+  }
+}
+
+function admLocToggle(key, loc, hideIt) {
+  if (hideIt && !confirm('„' + LOC_LABELS[loc] + '“ auf dieser Seite entfernen?\n\nDer Eintrag selbst bleibt gespeichert und erscheint weiter überall dort, wo er gebraucht wird.')) return;
+  config.locHide = config.locHide || {};
+  const l = (config.locHide[key] || []).filter(x => x !== loc);
+  if (hideIt) l.push(loc);
+  config.locHide[key] = l;
+  admLocSetup(key);
+  renderStandorte();
+  admUpdateSaveState();
 }
 
 function admOpenWeitere() {
@@ -5985,6 +6636,7 @@ function admOpenTel() {
 }
 
 function admOpenMehr() {
+  admLocSetup(null);
   admOpen('Durchsagen, Checkliste und mehr', [
     { part: 'durchsagen', title: ADM_PART_TITLES.durchsagen },
     { part: 'checkliste', title: ADM_PART_TITLES.checkliste },
@@ -6000,6 +6652,7 @@ function admOpenSettings(which) {
     admOpen('🧩 Startseite gestalten', [
       { html: '<p class="adm-hint">Hier legen Sie fest, welche Kacheln auf der Startseite erscheinen, in welcher Reihenfolge und unter welcher Überschrift. Die <strong>Inhalte</strong> der Kacheln bearbeiten Sie in der Übersicht durch Antippen der Kachel.</p>' },
       { part: 'kacheln', title: '🧩 Kacheln & Bereiche' },
+      { html: admDeletedHTML() },
     ], { reopen: () => admOpenSettings('start') });
   } else {
     admOpen('🔗 App teilen, PIN & Datensicherung', [
