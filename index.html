@@ -1850,6 +1850,18 @@ self.addEventListener('message', event => {
   .call-actions { padding: 0 16px 12px; }
   .adm-call-sel { width: auto !important; max-width: 100%; border-radius: 8px; padding: 7px 10px; font-size: 13px; font-family: var(--font-main); background: rgba(255,255,255,0.06); color: inherit; border: 1px solid rgba(255,255,255,0.2); margin: 6px 0 0; }
   #screen-admin.adm-light .adm-call-sel { background: #FFFFFF; border-color: #CFCBC0; color: #1F1F1D; }
+
+  /* ===== 2.14: Protokoll-Download, Protokoll abschaltbar ===== */
+  body.no-log [onclick^="openLogModal"], body.no-log .nav-log { display: none !important; }
+  .log-tools { margin: 0 16px 14px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+  .design-klar .log-tools { background: #F6F5F1; border-color: #E2DFD6; }
+  .log-tools-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .log-tools-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .log-tools-row .adm-imgbtn { margin: 0 !important; }
+  .log-tools-hint { font-size: 12px; opacity: .7; margin-top: 8px; }
+  .log-actions { display: flex; gap: 6px; margin-top: 10px; }
+  .log-actions button { border: 1px solid rgba(128,128,128,0.35); background: transparent; color: inherit; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-main); }
+  .log-actions button:last-child { margin-left: auto; }
 </style>
 </head>
 <body>
@@ -2819,7 +2831,7 @@ self.addEventListener('message', event => {
     <button class="nav-btn" onclick="navigate('telefon')">
       <span class="ni">📞</span>Nummern
     </button>
-    <button class="nav-btn" onclick="navigate('log')">
+    <button class="nav-btn nav-log" onclick="navigate('log')">
       <span class="ni">📝</span>Protokoll
     </button>
     <button class="nav-btn" onclick="navigate('admin')">
@@ -2977,7 +2989,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.13.0';
+const APP_VERSION = '2.14.0';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -3200,7 +3212,7 @@ function navigate(screenId) {
   if (['flucht','flucht-notausgaenge','flucht-rettungsweg','konzept','suizid'].includes(screenId)) restoreImages();
 
   // screen-specific init
-  if (screenId === 'log') renderLog();
+  if (screenId === 'log') { if (config.logEnabled === false) { goHome(); return; } renderLog(); }
   if (screenId === 'telefon') renderTelefon();
   if (screenId === 'admin') initAdmin();
   if (screenId === 'checkliste') renderChecklist();
@@ -3251,6 +3263,7 @@ function goHome() {
 ============================================================ */
 function applyBranding() {
   applyDesign();
+  document.body.classList.toggle('no-log', config.logEnabled === false);
   document.documentElement.style.setProperty('--school-primary', config.schoolColor);
   document.getElementById('homeSchoolName').textContent = config.schoolName;
   document.getElementById('homeSchoolSub').textContent = config.schoolSub;
@@ -3387,16 +3400,207 @@ function renderLog() {
     list.innerHTML = '<div class="log-empty"><div class="le-icon">📋</div>Noch keine Einträge.<br>Protokollieren Sie Vorfälle direkt<br>aus der jeweiligen Kategorie.</div>';
     return;
   }
-  list.innerHTML = config.log.slice().reverse().map(entry => `
+  const n = config.log.length;
+  list.innerHTML = `<div class="log-tools">
+      <div class="log-tools-title">Gesamtes Protokoll (${n} ${n === 1 ? 'Eintrag' : 'Einträge'}) herunterladen</div>
+      <div class="log-tools-row">
+        <button class="btn-secondary adm-imgbtn" onclick="logDownload('pdf')">⬇ PDF</button>
+        <button class="btn-secondary adm-imgbtn" onclick="logDownload('docx')">⬇ Word</button>
+      </div>
+      <div class="log-tools-hint">Die Einträge sind nur auf diesem Gerät gespeichert.</div>
+    </div>`
+    + config.log.map((entry, i) => ({ entry, i })).reverse().map(({ entry, i }) => `
     <div class="log-entry ${logColors[entry.type]||''}">
       <div class="log-meta">
-        <span>${entry.date}</span>
-        <span>${entry.time}</span>
+        <span>${escapeHtml(entry.date || '')}</span>
+        <span>${escapeHtml(entry.time || '')}</span>
       </div>
-      <div class="log-type">${entry.type}</div>
-      <div class="log-note">${entry.note || '–'}</div>
+      <div class="log-type">${escapeHtml(entry.type || '')}</div>
+      <div class="log-note">${escapeHtml(entry.note || '–')}</div>
+      <div class="log-actions">
+        <button onclick="logDownload('pdf',${i})">⬇ PDF</button>
+        <button onclick="logDownload('docx',${i})">⬇ Word</button>
+        <button onclick="logDelete(${i})" aria-label="Eintrag löschen">🗑</button>
+      </div>
     </div>
   `).join('');
+}
+
+/* ---------- Protokoll als PDF oder Word herunterladen (alles direkt auf dem Gerät) ---------- */
+function logDelete(i, quiet) {
+  if (!config.log || !config.log[i]) return;
+  if (!quiet && !confirm('Diesen Eintrag vom Gerät löschen?')) return;
+  config.log.splice(i, 1);
+  persistConfig();
+  renderLog();
+}
+
+function logFileName(ext, entries) {
+  const d = new Date();
+  const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const clean = t => String(t || '').replace(/[^A-Za-z0-9ÄÖÜäöüß_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+  const base = entries.length === 1 ? 'Vorfall_' + clean(entries[0].type) : 'Vorfallsprotokoll_' + clean(config.schoolName);
+  return base + '_' + ds + '.' + ext;
+}
+
+function logDownload(fmt, idx) {
+  const all = config.log || [];
+  const entries = idx === undefined ? all.slice() : [all[idx]].filter(Boolean);
+  if (!entries.length) return;
+  const blob = fmt === 'pdf' ? logPdf(entries) : logDocx(entries);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = logFileName(fmt, entries);
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  setTimeout(() => {
+    const frage = idx === undefined
+      ? 'Datei gespeichert.\n\nAlle ' + entries.length + ' Einträge jetzt von diesem Gerät löschen?\n(Empfohlen, wenn die Datei sicher abgelegt ist – das Protokoll kann personenbezogene Daten enthalten.)'
+      : 'Datei gespeichert.\n\nDiesen Eintrag jetzt von diesem Gerät löschen?';
+    if (confirm(frage)) {
+      if (idx === undefined) config.log = []; else config.log.splice(idx, 1);
+      persistConfig();
+      renderLog();
+      showToast('✓ Vom Gerät gelöscht');
+    }
+  }, 900);
+}
+
+function logLines(entries) {
+  const now = new Date();
+  return {
+    title: 'Vorfallsprotokoll',
+    school: config.schoolName || '',
+    meta: 'Erstellt am ' + now.toLocaleDateString('de-DE') + ' um ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr · ' + entries.length + (entries.length === 1 ? ' Eintrag' : ' Einträge'),
+    items: entries.map(e => ({ head: (e.date || '') + ', ' + (e.time || '') + ' Uhr – ' + stripEmoji(e.type || ''), note: e.note || '–' })),
+    foot: 'Vertraulich – kann personenbezogene Daten enthalten. Erstellt mit der SOS-Notfallapp.',
+  };
+}
+
+// --- PDF (A4, Helvetica, ohne Zusatzbibliothek) ---
+function logPdf(entries) {
+  const L = logLines(entries);
+  const W1252 = { 0x20AC: 0x80, 0x201A: 0x82, 0x201E: 0x84, 0x2026: 0x85, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97 };
+  const enc = t => {
+    let o = '';
+    for (const ch of String(t)) {
+      const c = ch.codePointAt(0);
+      let b = c < 0x80 || (c >= 0xA0 && c <= 0xFF) ? c : W1252[c];
+      if (b === undefined) continue;
+      const x = String.fromCharCode(b);
+      o += (x === '(' || x === ')' || x === '\\') ? '\\' + x : x;
+    }
+    return o;
+  };
+  const wrap = (t, size, maxW) => {
+    const out = [];
+    String(t).split(/\r?\n/).forEach(par => {
+      let line = '';
+      par.split(/\s+/).forEach(w => {
+        const test = line ? line + ' ' + w : w;
+        if (test.length * size * 0.52 > maxW && line) { out.push(line); line = w; } else line = test;
+      });
+      out.push(line);
+    });
+    return out;
+  };
+  const pages = [];
+  let ops = [], y = 800;
+  const M = 56, WMAX = 595 - 2 * M;
+  const newPage = () => { if (ops.length) pages.push(ops); ops = []; y = 800; };
+  const text = (t, size, bold, gray) => {
+    if (y < 70) newPage();
+    ops.push((gray ? '0.4 0.4 0.4 rg ' : '0 0 0 rg ') + 'BT /' + (bold ? 'F2' : 'F1') + ' ' + size + ' Tf ' + M + ' ' + y + ' Td (' + enc(t) + ') Tj ET');
+    y -= size * 1.35;
+  };
+  text(L.title, 20, true);
+  if (L.school) text(L.school, 13, true);
+  text(L.meta, 10, false, true);
+  y -= 8;
+  L.items.forEach(it => {
+    if (y < 120) newPage();
+    ops.push('0.85 0.85 0.85 RG 0.8 w ' + M + ' ' + (y + 12) + ' m ' + (595 - M) + ' ' + (y + 12) + ' l S');
+    y -= 6;
+    wrap(it.head, 12, WMAX).forEach(l => text(l, 12, true));
+    wrap(it.note, 11, WMAX).forEach(l => text(l, 11, false));
+    y -= 10;
+  });
+  y -= 6;
+  wrap(L.foot, 9, WMAX).forEach(l => text(l, 9, false, true));
+  newPage();
+  const objs = [];
+  const add = s2 => { objs.push(s2); return objs.length; };
+  add('<< /Type /Catalog /Pages 2 0 R >>');
+  add('PAGES');
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  const kids = [];
+  pages.forEach((p, i) => {
+    const st = p.join('\n') + '\n0.5 0.5 0.5 rg BT /F1 8 Tf ' + (595 - M - 40) + ' 30 Td (Seite ' + (i + 1) + ' von ' + pages.length + ') Tj ET';
+    const c = add('<< /Length ' + st.length + ' >>\nstream\n' + st + '\nendstream');
+    kids.push(add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' + c + ' 0 R >>'));
+  });
+  objs[1] = '<< /Type /Pages /Kids [' + kids.map(k => k + ' 0 R').join(' ') + '] /Count ' + kids.length + ' >>';
+  let out = '%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';
+  const offs = [];
+  objs.forEach((o, i) => { offs.push(out.length); out += (i + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+  const xref = out.length;
+  out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n' + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('')
+    + 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF';
+  const bytes = new Uint8Array(out.length);
+  for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 0xFF;
+  return new Blob([bytes], { type: 'application/pdf' });
+}
+
+// --- Word (.docx, ohne Zusatzbibliothek: ZIP ohne Kompression) ---
+function logDocx(entries) {
+  const L = logLines(entries);
+  const x = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const run = (t, o) => {
+    o = o || {};
+    const pr = (o.b ? '<w:b/>' : '') + (o.sz ? '<w:sz w:val="' + o.sz + '"/>' : '') + (o.gray ? '<w:color w:val="666666"/>' : '');
+    return String(t).split(/\r?\n/).map((part, i) => (i ? '<w:r><w:br/></w:r>' : '') + '<w:r>' + (pr ? '<w:rPr>' + pr + '</w:rPr>' : '') + '<w:t xml:space="preserve">' + x(part) + '</w:t></w:r>').join('');
+  };
+  const p = (inner, o) => {
+    o = o || {};
+    return '<w:p><w:pPr>' + (o.border ? '<w:pBdr><w:top w:val="single" w:sz="4" w:space="6" w:color="D9D9D9"/></w:pBdr>' : '') + '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after === undefined ? 80 : o.after) + '"/></w:pPr>' + inner + '</w:p>';
+  };
+  let body = p(run(L.title, { b: 1, sz: 40 }), { after: 60 });
+  if (L.school) body += p(run(L.school, { b: 1, sz: 26 }), { after: 40 });
+  body += p(run(L.meta, { sz: 20, gray: 1 }), { after: 240 });
+  L.items.forEach(it => {
+    body += p(run(it.head, { b: 1, sz: 24 }), { border: 1, before: 120, after: 60 });
+    body += p(run(it.note, { sz: 22 }), { after: 160 });
+  });
+  body += p(run(L.foot, { sz: 18, gray: 1 }), { before: 240 });
+  const doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' + body
+    + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>';
+  const files = [
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ['word/document.xml', doc],
+  ];
+  return new Blob([zipStore(files)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+
+function zipStore(files) {
+  const te = new TextEncoder();
+  const crcT = [];
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; crcT[n] = c >>> 0; }
+  const crc = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = crcT[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  const parts = [], central = [];
+  let off = 0;
+  const u16 = v => [v & 0xFF, (v >>> 8) & 0xFF], u32 = v => [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF];
+  files.forEach(([name, content]) => {
+    const nb = te.encode(name), data = te.encode(content), c = crc(data);
+    const head = [0x50, 0x4B, 0x03, 0x04, ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(data.length), ...u32(data.length), ...u16(nb.length), ...u16(0)];
+    parts.push(new Uint8Array(head), nb, data);
+    central.push(new Uint8Array([0x50, 0x4B, 0x01, 0x02, ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(data.length), ...u32(data.length), ...u16(nb.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), nb);
+    off += head.length + nb.length + data.length;
+  });
+  const csize = central.reduce((a, b) => a + b.length, 0);
+  const end = new Uint8Array([0x50, 0x4B, 0x05, 0x06, ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(csize), ...u32(off), ...u16(0)]);
+  return new Blob([...parts, ...central, end]);
 }
 
 function openLogModal(type) {
@@ -6653,6 +6857,11 @@ function admOpenSettings(which) {
       { html: '<p class="adm-hint">Hier legen Sie fest, welche Kacheln auf der Startseite erscheinen, in welcher Reihenfolge und unter welcher Überschrift. Die <strong>Inhalte</strong> der Kacheln bearbeiten Sie in der Übersicht durch Antippen der Kachel.</p>' },
       { part: 'kacheln', title: '🧩 Kacheln & Bereiche' },
       { html: admDeletedHTML() },
+      { html: admSectionHTML('📝 Vorfallsprotokoll', `
+        <label style="display:flex;align-items:center;gap:10px;font-size:15px;padding:2px 0 8px;cursor:pointer">
+          <input type="checkbox" ${config.logEnabled === false ? '' : 'checked'} onchange="config.logEnabled=this.checked;applyBranding();admUpdateSaveState()" style="width:auto;margin:0">
+          Protokoll-Funktion in der App anbieten</label>
+        <p class="text-muted" style="font-size:12px;margin:0">Ausgeschaltet verschwinden der Reiter „Protokoll“ und alle Knöpfe „Vorfall protokollieren“ auf allen Geräten Ihrer Schule. Protokolleinträge werden nie veröffentlicht – sie bleiben auf dem jeweiligen Gerät und lassen sich dort als PDF oder Word herunterladen.</p>`) },
     ], { reopen: () => admOpenSettings('start') });
   } else {
     admOpen('🔗 App teilen, PIN & Datensicherung', [
