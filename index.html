@@ -1949,6 +1949,19 @@ self.addEventListener('message', event => {
   </div>
 
   <!-- ========================================================
+    SCREEN: HILFSMITTEL (Durchsagen, Checkliste und mehr)
+  ======================================================== -->
+  <div id="screen-hilfsmittel" class="screen">
+    <div class="header" style="background: var(--school-primary)">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <div class="header-title">Durchsagen, Checkliste und mehr</div>
+    </div>
+    <div class="scroll-content">
+      <div id="hilfsmittel-content" style="padding:18px 16px 24px"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================
     SCREEN: FEUER
   ======================================================== -->
   <div id="screen-feuer" class="screen">
@@ -2989,7 +3002,7 @@ let saniInterval = null;
 let saniSeconds = 0;
 
 const STORAGE_KEY_BASE = 'sos_schule_config_v2';
-const APP_VERSION = '2.14.0';
+const APP_VERSION = '2.15.0';
 
 // Speicher pro Repository-Pfad trennen (verhindert Datenvermischung zwischen
 // Schulen, die auf derselben Domain, z.B. github.io, unter verschiedenen
@@ -3209,6 +3222,7 @@ function navigate(screenId) {
   renderScreenBlocks(screenId);
   applyKlarScreen(screenId);
   if (screenId === 'weitere') renderWeitereKlar();
+  if (screenId === 'hilfsmittel') renderHilfsmittel();
   if (['flucht','flucht-notausgaenge','flucht-rettungsweg','konzept','suizid'].includes(screenId)) restoreImages();
 
   // screen-specific init
@@ -3264,6 +3278,7 @@ function goHome() {
 function applyBranding() {
   applyDesign();
   document.body.classList.toggle('no-log', config.logEnabled === false);
+  applyToolVisibility();
   document.documentElement.style.setProperty('--school-primary', config.schoolColor);
   document.getElementById('homeSchoolName').textContent = config.schoolName;
   document.getElementById('homeSchoolSub').textContent = config.schoolSub;
@@ -5909,7 +5924,7 @@ function renderHomeKlar(host) {
   h += `<button class="klar-btn green" onclick="navigate('telefon')"><span class="kb-icon">☎</span>Telefonnummern</button>`;
   h += `<button class="klar-btn green" onclick="navigate('flucht')"><span class="kb-icon">➜</span>Fluchtwege</button>`;
   h += `<button class="klar-btn green" onclick="navigate('konzept')"><span class="kb-icon">☰</span>Notfallkonzept</button>`;
-  h += `<button class="klar-btn gray" onclick="navigate('weitere');setTimeout(()=>{const e=document.getElementById('klar-hilfsmittel');if(e)e.scrollIntoView({behavior:'smooth'})},400)">Durchsagen, Checkliste und mehr</button>`;
+  if (visibleTools().length) h += `<button class="klar-btn gray" onclick="navigate('hilfsmittel')">${escapeHtml(toolsLabel())}</button>`;
   host.innerHTML = h;
 }
 
@@ -5923,12 +5938,41 @@ function renderWeitereKlar() {
     (secs.length > 1 ? `<div class="klar-heading">${escapeHtml(stripEmoji(x.sec.label))}</div>` : '')
     + x.tiles.map(t => klarBtn(t, klarColor(t, false))).join('')
   ).join('');
-  h += `<div class="klar-heading" id="klar-hilfsmittel" style="margin-top:22px">Hilfsmittel</div>`;
-  [['durchsagen','Durchsagen'],['checkliste','Checkliste Rundgang'],['standorte','Standorte (Defi, Sani …)'],
-   ['anwesenheit','Anwesenheit'],['notruf','Notruf']].forEach(([id, lbl]) => {
-    h += `<button class="klar-btn gray" onclick="navigate('${id}')">${lbl}</button>`;
+  host.innerHTML = h || '<p class="text-muted" style="text-align:center;padding:30px 0">Keine weiteren Vorfälle.</p>';
+}
+
+/* ---------- Hilfsmittel: eigene Seite, einzeln ausblendbar ---------- */
+const TOOLS = [
+  ['durchsagen',  'Durchsagen'],
+  ['checkliste',  'Checkliste Rundgang'],
+  ['standorte',   'Standorte (Defi, Sani …)'],
+  ['anwesenheit', 'Anwesenheit'],
+  ['notruf',      'Notruf'],
+];
+function toolHidden(id) { return (config.hideTools || []).includes(id); }
+function visibleTools() { return TOOLS.filter(([id]) => !toolHidden(id)); }
+// Beschriftung des Startseiten-Knopfs passt sich an das an, was noch angezeigt wird
+function toolsLabel() {
+  const v = visibleTools().map(([id]) => id);
+  const parts = [];
+  if (v.includes('durchsagen')) parts.push('Durchsagen');
+  if (v.includes('checkliste')) parts.push('Checkliste');
+  if (!parts.length) return 'Hilfsmittel';
+  return v.length > parts.length ? parts.join(', ') + ' und mehr' : parts.join(' und ');
+}
+function renderHilfsmittel() {
+  const host = document.getElementById('hilfsmittel-content');
+  if (!host) return;
+  const t = document.querySelector('#screen-hilfsmittel .header-title');
+  if (t) t.textContent = toolsLabel();
+  host.innerHTML = visibleTools().map(([id, lbl]) => `<button class="klar-btn gray" onclick="navigate('${id}')">${lbl}</button>`).join('')
+    || '<p class="text-muted" style="text-align:center;padding:30px 0">Keine Hilfsmittel eingeblendet.</p>';
+}
+function applyToolVisibility() {
+  document.querySelectorAll('.quick-btn').forEach(b => {
+    const m = (b.getAttribute('onclick') || '').match(/navigate\('(\w+)'\)/);
+    if (m && TOOLS.some(([id]) => id === m[1])) b.style.display = toolHidden(m[1]) ? 'none' : '';
   });
-  host.innerHTML = h;
 }
 
 // Anruf-Buttons einer Kachel: eigene Einstellung oder Vorgabe (110/112)
@@ -6504,7 +6548,8 @@ function admRender() {
   h += `<button class="adm-tile green" onclick="admOpenTile('konzept')"><span>☰ Notfallkonzept<small>${hasK ? 'Inhalt vorhanden' : 'Noch kein Konzept hinterlegt'}</small></span>
     <span class="adm-chip ${hasK ? '' : 'warn'}">${hasK ? '✓' : '⚠ leer'}</span></button>`;
   const nD = (config.announcements || []).length, nC = (config.checklist || []).length;
-  h += `<button class="adm-tile gray" onclick="admOpenMehr()"><span>Durchsagen, Checkliste und mehr<small>${nD} Durchsagen · ${nC} Checkpunkte · Standorte</small></span>
+  const nHid = (config.hideTools || []).length;
+  h += `<button class="adm-tile gray" onclick="admOpenMehr()"><span>Durchsagen, Checkliste und mehr<small>${nD} Durchsagen · ${nC} Checkpunkte · Standorte${nHid ? ' · ' + nHid + ' ausgeblendet' : ''}</small></span>
     <span class="adm-chip">›</span></button>`;
 
   h += '<div class="adm-lbl">Einstellungen</div>';
@@ -6839,9 +6884,26 @@ function admOpenTel() {
   ], { reopen: () => admOpenTel() });
 }
 
+function admToolsHTML() {
+  return admSectionHTML('🧰 Was erscheint in der App?', TOOLS.map(([id, lbl]) => `
+    <label style="display:flex;align-items:center;gap:10px;font-size:15px;padding:5px 0;cursor:pointer">
+      <input type="checkbox" ${toolHidden(id) ? '' : 'checked'} onchange="admToolToggle('${id}',this.checked)" style="width:auto;margin:0">
+      ${lbl}</label>`).join('')
+    + '<p class="text-muted" style="font-size:12px;margin:6px 0 0">Ohne Häkchen wird der Knopf auf allen Geräten Ihrer Schule ausgeblendet. Die Inhalte bleiben gespeichert.</p>');
+}
+function admToolToggle(id, show) {
+  const l = (config.hideTools || []).filter(x => x !== id);
+  if (!show) l.push(id);
+  config.hideTools = l;
+  applyBranding();
+  renderHomeTiles();
+  admUpdateSaveState();
+}
+
 function admOpenMehr() {
   admLocSetup(null);
   admOpen('Durchsagen, Checkliste und mehr', [
+    { html: admToolsHTML() },
     { part: 'durchsagen', title: ADM_PART_TITLES.durchsagen },
     { part: 'checkliste', title: ADM_PART_TITLES.checkliste },
     { part: 'standorte', title: ADM_PART_TITLES.standorte },
